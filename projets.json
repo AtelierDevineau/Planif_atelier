@@ -40,11 +40,6 @@
                 "tache": "Transport",
                 "start": "2026-05-01",
                 "end": "2026-08-01"
-            },
-            {
-                "tache": "Montage",
-                "start": "2026-08-01",
-                "end": "2026-10-16"
             }
         ],
         "client": "TCE",

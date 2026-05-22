@@ -144,7 +144,7 @@ def crea_proj_tab():
                             args=(key_expander,)
                         ).isoformat()
                     with cols[3]:
-                        if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):
+                        if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche", type="primary"):
                             a_supp = j
 
                 if a_supp is not None:

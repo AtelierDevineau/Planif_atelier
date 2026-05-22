@@ -26,30 +26,35 @@ def inject_style():
     {font_face}
 
     /* Police GT Walsheim sur toute la sidebar */
-    [data-testid="stSidebar"] * {{
+    section[data-testid="stSidebar"] *,
+    [data-testid="stSidebarContent"] * {{
         font-family: 'GTWalsheim', sans-serif !important;
     }}
 
-    /* Style spécial pour le lien Accueil (premier lien) uniquement */
-    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:first-child {{
-        background-color: #F5D627 !important;
-        font-size: 1.1em !important;
-        font-weight: bold !important;
-        border-radius: 6px !important;
-        margin-bottom: 8px !important;
-        padding: 10px 14px !important;
-        color: #222 !important;
-    }}
-
-    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:first-child:hover {{
-        background-color: #e6c520 !important;
-    }}
-
-    /* Autres liens : style neutre, pas de gras */
-    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:not(:first-child) {{
+    /* Tous les liens de nav : style neutre */
+    section[data-testid="stSidebar"] a,
+    section[data-testid="stSidebar"] li a,
+    section[data-testid="stSidebar"] nav a {{
         font-weight: normal !important;
         background-color: transparent !important;
         font-size: 1em !important;
+    }}
+
+    /* Premier lien de nav : Accueil en jaune/gras */
+    section[data-testid="stSidebar"] nav ul li:first-child a,
+    section[data-testid="stSidebar"] nav li:first-child a {{
+        background-color: #F5D627 !important;
+        font-weight: bold !important;
+        font-size: 1.1em !important;
+        border-radius: 6px !important;
+        color: #222 !important;
+        display: block !important;
+        padding: 8px 12px !important;
+    }}
+
+    section[data-testid="stSidebar"] nav ul li:first-child a:hover,
+    section[data-testid="stSidebar"] nav li:first-child a:hover {{
+        background-color: #e6c520 !important;
     }}
 
     </style>

@@ -26,35 +26,38 @@ def inject_style():
     {font_face}
 
     /* Police GT Walsheim sur toute la sidebar */
-    section[data-testid="stSidebar"] *,
-    [data-testid="stSidebarContent"] * {{
+    [data-testid="stSidebar"] * {{
         font-family: 'GTWalsheim', sans-serif !important;
     }}
 
-    /* Tous les liens de nav : style neutre */
-    section[data-testid="stSidebar"] a,
-    section[data-testid="stSidebar"] li a,
-    section[data-testid="stSidebar"] nav a {{
-        font-weight: normal !important;
-        background-color: transparent !important;
-        font-size: 1em !important;
+    /* Style général des liens de navigation */
+    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {{
+        font-size: 1em;
+        padding: 6px 12px;
+        border-radius: 6px;
     }}
 
-    /* Premier lien de nav : Accueil en jaune/gras */
-    section[data-testid="stSidebar"] nav ul li:first-child a,
-    section[data-testid="stSidebar"] nav li:first-child a {{
-        background-color: #F5D627 !important;
-        font-weight: bold !important;
-        font-size: 1.1em !important;
-        border-radius: 6px !important;
+    /* Style spécial pour le lien Accueil (premier lien) */
+    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:first-child {{
+        background-color: #F5D627;
+        font-size: 1.15em;
+        font-weight: bold;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        padding: 10px 14px;
         color: #222 !important;
-        display: block !important;
-        padding: 8px 12px !important;
     }}
 
-    section[data-testid="stSidebar"] nav ul li:first-child a:hover,
-    section[data-testid="stSidebar"] nav li:first-child a:hover {{
-        background-color: #e6c520 !important;
+    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:first-child:hover {{
+        background-color: #e6c520;
+    }}
+
+    /* Masquer le tooltip "keyboard_double_..." sur le bouton de réduction */
+    [data-testid="stSidebar"] [data-testid="collapsedControl"] span,
+    [data-testid="stSidebarCollapsedControl"] span,
+    button[kind="header"] span[aria-hidden="false"],
+    [data-testid="stSidebar"] button span.eyeqlp51 {{
+        display: none !important;
     }}
 
     </style>

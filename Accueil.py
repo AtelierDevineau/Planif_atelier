@@ -86,7 +86,7 @@ PHRASES = [
 if "phrase_du_jour" not in st.session_state:
     st.session_state.phrase_du_jour = random.choice(PHRASES)
 
-IMAGES_BANNIERE = ["lion.png", "bateau.png", "fusee.png"]
+IMAGES_BANNIERE = ["images/lion.png", "images/bateau.png", "images/fusee.png"]
 
 if "image_banniere" not in st.session_state:
     st.session_state.image_banniere = random.choice(IMAGES_BANNIERE)
@@ -121,7 +121,19 @@ with col2:
     st.image("Atelier Devineau logo.png", use_container_width=True)
 
 # ── Bannière image aléatoire ──────────────────────────────────────────────────
-st.image(st.session_state.image_banniere, use_container_width=True)
+import base64 as _b64, os as _os
+_img_path = st.session_state.image_banniere
+with open(_img_path, "rb") as _f:
+    _img_b64 = _b64.b64encode(_f.read()).decode("utf-8")
+_ext = _os.path.splitext(_img_path)[1].replace(".", "")
+st.markdown(
+    f"""<div style="width:100%;height:220px;overflow:hidden;border-radius:8px;
+    margin-bottom:16px;">
+    <img src="data:image/{_ext};base64,{_img_b64}"
+    style="width:100%;height:100%;object-fit:cover;object-position:center;">
+    </div>""",
+    unsafe_allow_html=True
+)
 
 # ── Phrase d'accueil ──────────────────────────────────────────────────────────
 st.markdown(

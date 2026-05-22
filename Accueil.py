@@ -86,6 +86,11 @@ PHRASES = [
 if "phrase_du_jour" not in st.session_state:
     st.session_state.phrase_du_jour = random.choice(PHRASES)
 
+IMAGES_BANNIERE = ["lion.png", "bateau.png", "fusee.png"]
+
+if "image_banniere" not in st.session_state:
+    st.session_state.image_banniere = random.choice(IMAGES_BANNIERE)
+
 # ── Style CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -114,6 +119,9 @@ st.markdown("""
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     st.image("Atelier Devineau logo.png", use_container_width=True)
+
+# ── Bannière image aléatoire ──────────────────────────────────────────────────
+st.image(st.session_state.image_banniere, use_container_width=True)
 
 # ── Phrase d'accueil ──────────────────────────────────────────────────────────
 st.markdown(

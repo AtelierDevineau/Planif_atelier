@@ -169,7 +169,7 @@ def crea_proj_tab():
                 # -------------- BOUTONS --------------------------
                 col_save, col_del = st.columns([1, 1])
                 with col_save:
-                    if st.button("✅ Enregistrer les modifications", key=f"save_{i}",type="tertiary"):
+                    if st.button("✅ Enregistrer les modifications", key=f"save_{i}",type="primary"):
                         projets[i]["projet"] = new_proj
                         projets[i]["couleur"] = new_color
                         projets[i]["sous_taches"] = sous_taches

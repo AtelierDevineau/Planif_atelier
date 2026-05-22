@@ -1,0 +1,86 @@
+{
+    "Enlèvement au sérail": {
+        "Conception": {
+            "Nb_ressources": 2,
+            "Assignations": [
+                {
+                    "Nom": "Abraham Lincoln",
+                    "Pct": 33
+                },
+                {
+                    "Nom": "Albert Einstein",
+                    "Pct": 53
+                }
+            ]
+        },
+        "Fabrication décors": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Abraham Lincoln",
+                    "Pct": 46
+                }
+            ]
+        }
+    },
+    "Manon Lescaut": {
+        "Conception": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Albert Einstein",
+                    "Pct": 3
+                }
+            ]
+        },
+        "Fabrication": {
+            "Nb_ressources": 3,
+            "Assignations": [
+                {
+                    "Nom": "Albert Einstein",
+                    "Pct": 11
+                },
+                {
+                    "Nom": "Aya Nakamura",
+                    "Pct": 100
+                },
+                {
+                    "Nom": "Marie Curie",
+                    "Pct": 22
+                }
+            ]
+        }
+    },
+    "Brundibar": {
+        "Etude": {
+            "Nb_ressources": 4,
+            "Assignations": [
+                {
+                    "Nom": "Albert Einstein",
+                    "Pct": 3
+                },
+                {
+                    "Nom": "Marie Curie",
+                    "Pct": 49
+                },
+                {
+                    "Nom": "Charlie Chaplin",
+                    "Pct": 15
+                },
+                {
+                    "Nom": "Mickey Mouse",
+                    "Pct": 43
+                }
+            ]
+        },
+        "Montage": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Marie Curie",
+                    "Pct": 29
+                }
+            ]
+        }
+    }
+}

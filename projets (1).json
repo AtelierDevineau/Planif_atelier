@@ -1,0 +1,89 @@
+[
+    {
+        "projet": "Enlèvement au sérail",
+        "couleur": "#FF6C6C",
+        "sous_taches": [
+            {
+                "tache": "Conception",
+                "start": "2026-01-01",
+                "end": "2026-02-01"
+            },
+            {
+                "tache": "Fabrication décors",
+                "start": "2026-02-01",
+                "end": "2026-03-15"
+            },
+            {
+                "tache": "Montage",
+                "start": "2026-03-15",
+                "end": "2026-05-30"
+            }
+        ],
+        "client": "TCE",
+        "description": ""
+    },
+    {
+        "projet": "Manon Lescaut",
+        "couleur": "#FFBD45",
+        "sous_taches": [
+            {
+                "tache": "Conception",
+                "start": "2026-02-03",
+                "end": "2026-03-15"
+            },
+            {
+                "tache": "Fabrication",
+                "start": "2026-03-15",
+                "end": "2026-05-01"
+            },
+            {
+                "tache": "Transport",
+                "start": "2026-05-01",
+                "end": "2026-08-01"
+            },
+            {
+                "tache": "Montage",
+                "start": "2026-08-01",
+                "end": "2026-10-16"
+            }
+        ],
+        "client": "TCE",
+        "description": ""
+    },
+    {
+        "projet": "Brundibar",
+        "couleur": "#63CDEB",
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-01-09",
+                "end": "2026-05-15"
+            },
+            {
+                "tache": "Montage",
+                "start": "2026-05-20",
+                "end": "2026-05-31"
+            }
+        ],
+        "client": "Opéra comique",
+        "description": ""
+    },
+    {
+        "projet": "Tournette",
+        "couleur": "#A78BFA",
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-05-14",
+                "end": "2026-05-19"
+            },
+            {
+                "tache": "Montage",
+                "start": "2026-05-22",
+                "end": "2026-06-26"
+            }
+        ],
+        "client": "Opéra de Lorient",
+        "description": ""
+    }
+]

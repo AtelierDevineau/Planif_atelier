@@ -1,0 +1,79 @@
+[
+    {
+        "Nom": "Abraham Lincoln",
+        "Poste": "Serrurerie",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "absences": [
+            {
+                "start": "2026-05-20",
+                "end": "2026-05-30"
+            }
+        ]
+    },
+    {
+        "Nom": "Albert Einstein",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "absences": []
+    },
+    {
+        "Nom": "Marie Curie",
+        "Poste": "Usinage",
+        "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "absences": []
+    },
+    {
+        "Nom": "Aya Nakamura",
+        "Poste": "Déco",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "absences": []
+    },
+    {
+        "Nom": "Charlie Chaplin",
+        "Poste": "Administration",
+        "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "absences": []
+    },
+    {
+        "Nom": "Freddy Mercury",
+        "Poste": "BE",
+        "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "absences": []
+    },
+    {
+        "Nom": "Mickey Mouse",
+        "Poste": "Construction",
+        "Contrat": "Permanent",
+        "Dispo_base": 50,
+        "absences": []
+    },
+    {
+        "Nom": "Jean Jacques Goldman",
+        "Poste": "Régisseur",
+        "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "absences": []
+    },
+    {
+        "Nom": "Madonna",
+        "Poste": "Autres",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "Prestataire",
+        "absences": []
+    },
+    {
+        "Nom": "Tintin",
+        "Poste": "Tapisserie",
+        "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    }
+]

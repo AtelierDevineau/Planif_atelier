@@ -3,12 +3,15 @@ import random
 import json
 import requests
 import base64
+from style_sidebar import inject_style
 
 # ── Configuration page ────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Atelier Devineau",
+    page_title="Atelier Devineau — Accueil",
     page_icon="🔧",
 )
+
+inject_style()
 
 # ── Authentification ──────────────────────────────────────────────────────────
 if "authentifie" not in st.session_state:
@@ -56,9 +59,8 @@ def sauvegarder_postits(postits, sha):
     response = requests.put(GITHUB_API, headers=_headers(), json=payload)
     if response.status_code in (200, 201):
         return response.json()["content"]["sha"]
-    else:
-        st.error(f"Erreur sauvegarde GitHub ({response.status_code})")
-        return sha
+    st.error(f"Erreur sauvegarde GitHub ({response.status_code})")
+    return sha
 
 # ── Chargement post-its ───────────────────────────────────────────────────────
 if "postits" not in st.session_state:
@@ -105,12 +107,6 @@ st.markdown("""
     font-size: 1.05em;
     margin: 8px 0 32px 0;
 }
-.titre-accueil {
-    text-align: center;
-    font-size: 2em;
-    font-weight: bold;
-    margin-bottom: 4px;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -127,10 +123,8 @@ st.markdown(
 
 # ── Post-its ──────────────────────────────────────────────────────────────────
 st.markdown("### 📌 Notes")
-
 postits = st.session_state.postits
 
-# Affichage des post-its en grille 3 colonnes
 if postits:
     cols = st.columns(3)
     for idx, postit in enumerate(postits):

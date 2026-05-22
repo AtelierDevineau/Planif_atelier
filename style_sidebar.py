@@ -30,26 +30,26 @@ def inject_style():
         font-family: 'GTWalsheim', sans-serif !important;
     }}
 
-    /* Style général des liens de navigation */
-    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {{
-        font-size: 1em;
-        padding: 6px 12px;
-        border-radius: 6px;
-    }}
-
-    /* Style spécial pour le lien Accueil (premier lien) */
+    /* Style spécial pour le lien Accueil (premier lien) uniquement */
     [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:first-child {{
-        background-color: #F5D627;
-        font-size: 1.15em;
-        font-weight: bold;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        padding: 10px 14px;
+        background-color: #F5D627 !important;
+        font-size: 1.1em !important;
+        font-weight: bold !important;
+        border-radius: 6px !important;
+        margin-bottom: 8px !important;
+        padding: 10px 14px !important;
         color: #222 !important;
     }}
 
     [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:first-child:hover {{
-        background-color: #e6c520;
+        background-color: #e6c520 !important;
+    }}
+
+    /* Autres liens : style neutre, pas de gras */
+    [data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:not(:first-child) {{
+        font-weight: normal !important;
+        background-color: transparent !important;
+        font-size: 1em !important;
     }}
 
     </style>

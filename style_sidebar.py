@@ -53,10 +53,7 @@ def inject_style():
     }}
 
     /* Masquer le tooltip "keyboard_double_..." sur le bouton de réduction */
-    [data-testid="stSidebar"] [data-testid="collapsedControl"] span,
-    [data-testid="stSidebarCollapsedControl"] span,
-    button[kind="header"] span[aria-hidden="false"],
-    [data-testid="stSidebar"] button span.eyeqlp51 {{
+    [data-testid="stSidebar"] button span {{
         display: none !important;
     }}
 

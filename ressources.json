@@ -30,7 +30,12 @@
         "Poste": "Déco",
         "Contrat": "Permanent",
         "Dispo_base": 100,
-        "absences": []
+        "absences": [
+            {
+                "start": "2026-06-02",
+                "end": "2026-06-19"
+            }
+        ]
     },
     {
         "Nom": "Charlie Chaplin",

@@ -119,6 +119,11 @@ def crea_proj_tab():
                             if st.button("Valider", key=f"tache_valider_{i}_{j}"):
                                 if nom_custom.strip():
                                     sous_taches[j]["tache"] = nom_custom.strip()
+                                    # Vider le champ texte et forcer le selectbox à se reconstruire
+                                    if f"tache_custom_{i}_{j}" in st.session_state:
+                                        del st.session_state[f"tache_custom_{i}_{j}"]
+                                    if f"tache_type_{i}_{j}" in st.session_state:
+                                        del st.session_state[f"tache_type_{i}_{j}"]
                                     st.session_state[key_expander] = True
                                     st.rerun()
                         else:

@@ -1,151 +1,225 @@
 import streamlit as st
-import plotly.graph_objects as go
 from streamlit_calendar import calendar
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 from donnees import Options_cal, build_absences_cal, sauvegarder_ressources_github
 
+# -------------------------------------------------------
+# UTILITAIRES
+# -------------------------------------------------------
 
-#-------------UTILITAIRES--------------------
+def get_semaines(date_debut, date_fin):
+    """Retourne la liste des lundis entre date_debut et date_fin."""
+    lundis = []
+    cur = date_debut - timedelta(days=date_debut.weekday())
+    while cur <= date_fin:
+        lundis.append(cur)
+        cur += timedelta(weeks=1)
+    return lundis
 
-def to_timestamp_ms(date_str):
-    """Convertit une date ISO 'YYYY-MM-DD' en timestamp milliseconds pour Plotly."""
-    return int(datetime.fromisoformat(date_str).timestamp() * 1000)
-
-def semaines_entre(date_debut_str, date_fin_str):
-    """Génère les dates des lundis entre deux dates pour les ticks de l'axe."""
-    debut = date.fromisoformat(date_debut_str)
-    fin = date.fromisoformat(date_fin_str)
-    lundi = debut - timedelta(days=debut.weekday())
-    ticks_dates = []
-    ticks_labels = []
-    while lundi <= fin:
-        semaine = lundi.isocalendar()[1]
-        annee = lundi.isocalendar()[0]
-        ticks_dates.append(lundi.isoformat())
-        ticks_labels.append(f"S{semaine:02d} {annee}")
-        lundi += timedelta(weeks=1)
-    return ticks_dates, ticks_labels
-
-def jours_entre(date_debut_str, date_fin_str):
-    """Génère les dates de chaque jour entre deux dates pour la grille verticale."""
-    debut = date.fromisoformat(date_debut_str)
-    fin = date.fromisoformat(date_fin_str)
+def get_jours(date_debut, date_fin):
+    """Retourne tous les jours entre date_debut et date_fin."""
     jours = []
-    cur = debut
-    while cur <= fin:
-        jours.append(cur.isoformat())
+    cur = date_debut
+    while cur <= date_fin:
+        jours.append(cur)
         cur += timedelta(days=1)
     return jours
 
+def position_jour(jour, date_debut_grille):
+    """Retourne l'index de colonne (en jours) d'un jour par rapport au début de la grille."""
+    return (jour - date_debut_grille).days
 
-#-------------CREATION GANTT--------------------
+def get_noms_assignes(nom_projet, nom_tache, data_proj):
+    """Retourne la liste des noms assignés à une sous-tâche."""
+    data_st = data_proj.get(nom_projet, {}).get(nom_tache, {})
+    return [a["Nom"] for a in data_st.get("Assignations", [])]
 
-def gantt(projets_data, nb_semaines, titre=""):
+
+# -------------------------------------------------------
+# CONSTRUCTION DU GANTT TABLEAU
+# -------------------------------------------------------
+
+def gantt_tableau(projets_data, nb_semaines, data_proj):
     """
-    Construction d'un diagramme de Gantt Plotly.
-    - Pas de labels Y (trop peu de place)
-    - Clés Y uniques = "projet||sous-tâche" pour éviter les collisions
-    - Texte en noir sur les barres si assez larges, sinon au survol
-    - Grille verticale légère derrière les barres
+    Génère un tableau HTML style Excel représentant le Gantt.
+    - Colonnes = semaines (header) subdivisées en jours (lignes verticales légères)
+    - 2 lignes par sous-tâche : ligne couleur + ligne noms
+    - Les deux lignes semblent n'en former qu'une seule
     """
-    fig = go.Figure()
-
     today = date.today()
-    x_min = today.isoformat()
-    x_max = (today + timedelta(weeks=nb_semaines)).isoformat()
+    date_debut = today
+    date_fin = today + timedelta(weeks=nb_semaines)
 
-    duree_fenetre_ms = to_timestamp_ms(x_max) - to_timestamp_ms(x_min)
-    seuil_texte_ms = duree_fenetre_ms * 0.05
+    lundis = get_semaines(date_debut, date_fin)
+    jours = get_jours(date_debut, date_fin)
+    nb_jours = len(jours)
 
-    for projet in reversed(projets_data):
+    # Largeur en % par jour
+    pct_jour = 100 / nb_jours
+
+    # ── CSS ──────────────────────────────────────────────────────────────────
+    css = """
+    <style>
+    .gantt-wrap {
+        overflow-x: auto;
+        width: 100%;
+    }
+    .gantt-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 700px;
+        table-layout: fixed;
+        font-size: 0.82em;
+    }
+    /* Colonne label à gauche */
+    .gantt-table .col-label {
+        width: 140px;
+        min-width: 140px;
+        max-width: 140px;
+    }
+    /* Cellule label sous-tâche */
+    .gantt-label {
+        padding: 2px 8px;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-right: 1px solid #ddd;
+        vertical-align: middle;
+    }
+    /* Cellule label vide (ligne noms) */
+    .gantt-label-sub {
+        padding: 2px 8px;
+        border-right: 1px solid #ddd;
+        border-bottom: 2px solid #ccc;
+    }
+    /* Cellule de la grille (jour) */
+    .gantt-cell {
+        padding: 0;
+        position: relative;
+        border-right: 1px solid #f0f0f0; /* ligne verticale jour très légère */
+    }
+    /* Séparateur semaine un peu plus marqué */
+    .gantt-cell-lundi {
+        border-right: 1px solid #d0d0d0;
+    }
+    /* Séparateur de ligne entre projets */
+    .gantt-row-sep td {
+        border-bottom: 2px solid #ccc;
+    }
+    /* Header semaine */
+    .gantt-header-sem {
+        text-align: left;
+        padding: 4px 6px;
+        font-weight: bold;
+        font-size: 0.85em;
+        background: #f5f5f5;
+        border-right: 1px solid #d0d0d0;
+        border-bottom: 1px solid #ccc;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    /* Barre colorée dans la cellule */
+    .gantt-bar {
+        width: 100%;
+        height: 100%;
+        min-height: 22px;
+    }
+    /* Ligne noms : même couleur mais plus transparente */
+    .gantt-bar-sub {
+        width: 100%;
+        height: 100%;
+        min-height: 18px;
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        font-size: 0.78em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #222;
+    }
+    </style>
+    """
+
+    # ── HEADER ───────────────────────────────────────────────────────────────
+    header = '<tr><th class="col-label gantt-header-sem"></th>'
+    for lundi in lundis:
+        # Compter les jours de cette semaine dans la fenêtre
+        jours_semaine = [j for j in jours if j >= lundi and j < lundi + timedelta(weeks=1)]
+        if not jours_semaine:
+            continue
+        colspan = len(jours_semaine)
+        label = f"Lun. {lundi.day}/{lundi.month}"
+        header += f'<th colspan="{colspan}" class="gantt-header-sem">{label}</th>'
+    header += '</tr>'
+
+    # ── LIGNES ───────────────────────────────────────────────────────────────
+    rows = ""
+    for proj_idx, projet in enumerate(projets_data):
         nom_projet = projet["projet"]
         couleur = projet["couleur"]
+        # Couleur plus claire pour la ligne noms (opacité simulée en hex)
+        couleur_sub = couleur + "99"  # ~60% opacité en RGBA hex
 
-        for sous_tache in projet["sous_taches"]:
-            # Clé Y unique pour éviter que deux sous-tâches homonymes de projets différents
-            # se retrouvent sur la même ligne
-            label_y = f"{nom_projet}||{sous_tache['tache']}"
+        for st_idx, sous_tache in enumerate(projet["sous_taches"]):
+            nom_st = sous_tache["tache"]
+            debut_st = date.fromisoformat(sous_tache["start"])
+            fin_st = date.fromisoformat(sous_tache["end"])
+            noms = get_noms_assignes(nom_projet, nom_st, data_proj)
+            noms_str = ", ".join(noms) if noms else ""
 
-            duree_ms = (
-                date.fromisoformat(sous_tache["end"]) -
-                date.fromisoformat(sous_tache["start"])
-            ).days * 24 * 3600 * 1000
-            base_ms = to_timestamp_ms(sous_tache["start"])
+            # Est-ce la dernière sous-tâche du projet ?
+            is_last = st_idx == len(projet["sous_taches"]) - 1
 
-            texte_barre = sous_tache["tache"] if duree_ms >= seuil_texte_ms else ""
+            # ── Ligne 1 : barre colorée ──
+            row1 = f'<tr><td class="gantt-label col-label">{nom_st}</td>'
+            for jour in jours:
+                dans_tache = debut_st <= jour < fin_st
+                est_lundi = jour.weekday() == 0
+                cls = "gantt-cell-lundi" if est_lundi else "gantt-cell"
+                if dans_tache:
+                    row1 += f'<td class="{cls}"><div class="gantt-bar" style="background:{couleur};"></div></td>'
+                else:
+                    row1 += f'<td class="{cls}"></td>'
+            row1 += '</tr>'
 
-            fig.add_trace(go.Bar(
-                name=nom_projet,
-                orientation="h",
-                y=[label_y],
-                x=[duree_ms],
-                base=[base_ms],
-                marker=dict(color=couleur, line=dict(color="white", width=1)),
-                text=texte_barre,
-                textposition="inside",
-                insidetextanchor="middle",
-                textfont=dict(color="black", size=11),
-                hovertemplate=(
-                    f"<b>{nom_projet}</b><br>"
-                    f"Tâche : {sous_tache['tache']}<br>"
-                    f"Début : {sous_tache['start']}<br>"
-                    f"Fin : {sous_tache['end']}<extra></extra>"
-                ),
-                showlegend=False,
-            ))
+            # ── Ligne 2 : noms assignés ──
+            sep_cls = " gantt-row-sep" if is_last else ""
+            row2 = f'<tr class="{sep_cls.strip()}"><td class="gantt-label-sub col-label"></td>'
+            # On cherche les colonnes de début et fin pour placer le texte
+            for jour in jours:
+                dans_tache = debut_st <= jour < fin_st
+                est_lundi = jour.weekday() == 0
+                cls = "gantt-cell-lundi" if est_lundi else "gantt-cell"
+                # Afficher le texte uniquement dans la première cellule de la barre
+                if dans_tache and jour == max(debut_st, date_debut):
+                    row2 += f'<td class="{cls}"><div class="gantt-bar-sub" style="background:{couleur_sub};">{noms_str}</div></td>'
+                elif dans_tache:
+                    row2 += f'<td class="{cls}"><div class="gantt-bar-sub" style="background:{couleur_sub};"></div></td>'
+                else:
+                    row2 += f'<td class="{cls}"></td>'
+            row2 += '</tr>'
 
-    # Ticks semaines
-    ticks_dates, ticks_labels = semaines_entre(x_min, x_max)
+            rows += row1 + row2
 
-    # Légende manuelle par projet
-    for projet in projets_data:
-        fig.add_trace(go.Scatter(
-            x=[None], y=[None],
-            mode="markers",
-            marker=dict(size=10, color=projet["couleur"], symbol="square"),
-            name=projet["projet"],
-        ))
-
-    nb_sous_taches = sum(len(p["sous_taches"]) for p in projets_data)
-
-    fig.update_layout(
-        barmode="overlay",
-        title=titre if titre else "",
-        xaxis=dict(
-            type="date",
-            range=[x_min, x_max],
-            tickvals=ticks_dates,
-            ticktext=ticks_labels,
-            tickangle=-90,
-            showgrid=True,
-            gridcolor="#eeeeee",
-            gridwidth=1,
-            side="top",
-        ),
-        yaxis=dict(
-            autorange="reversed",
-            showticklabels=False,  # on masque les labels Y (clés techniques)
-            showgrid=False,
-        ),
-        height=160 + nb_sous_taches * 40,
-        margin=dict(l=10, r=20, t=80, b=120),
-        plot_bgcolor="white",
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=-0.15,
-            xanchor="center",
-            x=0.5,
-        ),
-    )
-
-    return fig
+    html = f"""
+    {css}
+    <div class="gantt-wrap">
+    <table class="gantt-table">
+        <thead>{header}</thead>
+        <tbody>{rows}</tbody>
+    </table>
+    </div>
+    """
+    return html
 
 
-#-------------ONGLET CALENDRIER----------------------
+# -------------------------------------------------------
+# ONGLET CALENDRIER
+# -------------------------------------------------------
 
 def calendrier_tab():
-    """Affiche onglet calendrier"""
     st.subheader('Calendrier')
     selection = st.pills(
         " ",
@@ -164,12 +238,15 @@ def calendrier_tab():
         )
         nb_semaines = options_semaines[choix_semaines]
         projets = st.session_state.Projets_gantt
+        data_proj = st.session_state.Data_proj
 
         # ---- Vue d'ensemble ----
         st.markdown("#### Vue d'ensemble")
         if projets:
-            fig_global = gantt(projets, nb_semaines)
-            st.plotly_chart(fig_global, use_container_width=True)
+            st.markdown(
+                gantt_tableau(projets, nb_semaines, data_proj),
+                unsafe_allow_html=True
+            )
         else:
             st.info("Aucun projet à afficher.")
 
@@ -184,13 +261,14 @@ def calendrier_tab():
             )
             projet_data = next(p for p in projets if p["projet"] == projet_choisi)
             if projet_data["sous_taches"]:
-                fig_detail = gantt([projet_data], nb_semaines, titre=projet_choisi)
-                st.plotly_chart(fig_detail, use_container_width=True)
+                st.markdown(
+                    gantt_tableau([projet_data], nb_semaines, data_proj),
+                    unsafe_allow_html=True
+                )
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
 
     if selection == "Absences":
-        # --- Formulaire d'ajout d'absence ---
         with st.form("form_absence", clear_on_submit=True):
             noms_ressources = [r["Nom"] for r in st.session_state.Ressources_base]
             col_nom, col_debut, col_fin = st.columns([2, 1, 1])

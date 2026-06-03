@@ -38,11 +38,6 @@
                 "tache": "Etude",
                 "start": "2026-01-09",
                 "end": "2026-05-15"
-            },
-            {
-                "tache": "Transport",
-                "start": "2026-05-15",
-                "end": "2026-05-29"
             }
         ],
         "client": "Opéra comique",
@@ -61,11 +56,6 @@
                 "tache": "Montage",
                 "start": "2026-05-22",
                 "end": "2026-06-26"
-            },
-            {
-                "tache": "Représentation",
-                "start": "2026-06-30",
-                "end": "2026-07-01"
             }
         ],
         "client": "Opéra de Lorient",

@@ -4,9 +4,14 @@
         "couleur": "#FF6C6C",
         "sous_taches": [
             {
-                "tache": "Montage",
+                "tache": "Pré étude",
                 "start": "2026-03-15",
                 "end": "2026-05-30"
+            },
+            {
+                "tache": "Construction",
+                "start": "2026-05-30",
+                "end": "2026-06-27"
             }
         ],
         "client": "TCE",

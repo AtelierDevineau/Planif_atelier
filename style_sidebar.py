@@ -25,6 +25,14 @@ def inject_style():
     <style>
     {font_face}
 
+    /* Police GT Walsheim sur tout le contenu de la page */
+    html, body, [class*="css"], .stMarkdown, .stText,
+    .stButton button, .stSelectbox, .stTextInput,
+    .stNumberInput, .stRadio, .stCheckbox,
+    [data-testid="stAppViewContainer"] * {{
+        font-family: 'GTWalsheim', sans-serif !important;
+    }}
+
     /* Police GT Walsheim sur toute la sidebar */
     [data-testid="stSidebar"] * {{
         font-family: 'GTWalsheim', sans-serif !important;

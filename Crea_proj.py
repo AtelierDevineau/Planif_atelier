@@ -13,11 +13,10 @@ COULEURS_PALETTE = {
     "Gris":     "#94A3B8",
 }
 
-#-------------CALLBACKS----------------------
-
-def garder_expander_ouvert(key_expander):
-    """Callback pour maintenir l'expander ouvert lors d'une interaction."""
-    st.session_state[key_expander] = True
+TACHES_TYPES = [
+    "Pré étude", "Etude", "Construction", "Serrurerie",
+    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
+]
 
 #-------------ONGLET-----------------------------
 
@@ -37,7 +36,7 @@ def crea_proj_tab():
 
         for i, projet in enumerate(projets):
             couleur = projet["couleur"]
-            key_expander = f"expander_open_{i}"
+            key_expander = f"__xpnd_p{i}__"
             if key_expander not in st.session_state:
                 st.session_state[key_expander] = False
 
@@ -45,9 +44,6 @@ def crea_proj_tab():
                 f"**{projet['projet']}** - {len(projet['sous_taches'])} sous-tache(s)",
                 expanded=st.session_state[key_expander]
             ):
-                # On ne remet PAS à False ici — l'expander reste ouvert
-                # tant que l'utilisateur interagit dedans
-
                 # --------------- EDITION DU PROJET ---------------
                 new_proj = st.text_input(
                     "Nom du projet",
@@ -90,42 +86,41 @@ def crea_proj_tab():
                 )
 
                 # --------------- SOUS TACHES ----------------------
-                TACHES_TYPES = [
-                    "Pré étude", "Etude", "Construction", "Serrurerie",
-                    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
-                ]
                 st.markdown("**Sous-tâches**")
                 sous_taches = projet["sous_taches"]
                 a_supp = None
 
                 for j, st_data in enumerate(sous_taches):
                     nom_actuel = st_data["tache"]
-                    # Déterminer si le nom actuel est une tâche type ou "Autre"
-                    if nom_actuel in TACHES_TYPES:
-                        index_type = TACHES_TYPES.index(nom_actuel)
-                    else:
-                        index_type = TACHES_TYPES.index("Autre")
+
+                    # Si le nom est hors liste, on l'ajoute comme option unique pour ce selectbox
+                    options_j = TACHES_TYPES[:]
+                    if nom_actuel not in TACHES_TYPES:
+                        options_j = [nom_actuel] + TACHES_TYPES
+                    index_type = options_j.index(nom_actuel) if nom_actuel in options_j else options_j.index("Autre")
 
                     cols = st.columns([3, 2, 2, 0.6])
                     with cols[0]:
                         choix_type = st.selectbox(
                             "Type",
-                            options=TACHES_TYPES,
+                            options=options_j,
                             index=index_type,
                             key=f"tache_type_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=garder_expander_ouvert,
-                            args=(key_expander,)
+                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         )
                         if choix_type == "Autre":
-                            nom_autre = st.text_input(
+                            nom_custom = st.text_input(
                                 "Nom personnalisé",
-                                value=nom_actuel if nom_actuel not in TACHES_TYPES else "",
-                                key=f"tache_autre_{i}_{j}",
+                                key=f"tache_custom_{i}_{j}",
                                 placeholder="Nom de la tâche...",
                                 label_visibility="collapsed"
                             )
-                            sous_taches[j]["tache"] = nom_autre if nom_autre.strip() else "Autre"
+                            if st.button("Valider", key=f"tache_valider_{i}_{j}"):
+                                if nom_custom.strip():
+                                    sous_taches[j]["tache"] = nom_custom.strip()
+                                    st.session_state[key_expander] = True
+                                    st.rerun()
                         else:
                             sous_taches[j]["tache"] = choix_type
                     with cols[1]:
@@ -134,8 +129,7 @@ def crea_proj_tab():
                             value=date.fromisoformat(st_data["start"]),
                             key=f"start_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=garder_expander_ouvert,
-                            args=(key_expander,)
+                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         ).isoformat()
                     with cols[2]:
                         sous_taches[j]["end"] = st.date_input(
@@ -143,8 +137,7 @@ def crea_proj_tab():
                             value=date.fromisoformat(st_data["end"]),
                             key=f"end_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=garder_expander_ouvert,
-                            args=(key_expander,)
+                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         ).isoformat()
                     with cols[3]:
                         if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):

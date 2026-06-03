@@ -30,6 +30,11 @@
                 "tache": "Etude",
                 "start": "2026-06-16",
                 "end": "2026-07-15"
+            },
+            {
+                "tache": "Transport",
+                "start": "2026-07-15",
+                "end": "2026-07-29"
             }
         ],
         "client": "TCE",

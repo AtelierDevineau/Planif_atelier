@@ -61,7 +61,7 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         font-weight: bold;
         font-size: 0.85em;
         background: #f5f5f5;
-        border-right: 1px solid #d0d0d0;
+        border-right: 2px solid #999;
         border-bottom: 2px solid #ccc;
         white-space: nowrap;
         overflow: hidden;
@@ -79,7 +79,7 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     .gcl {
         padding: 0;
         height: 24px;
-        border-right: 1px solid #d0d0d0;
+        border-right: 2px solid #999;
         border-top: none;
         border-bottom: none;
         border-left: none;
@@ -89,6 +89,7 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         padding: 0 8px;
         height: 24px;
         vertical-align: middle;
+        text-align: center;
         font-weight: bold;
         font-size: 0.85em;
         color: #222;
@@ -125,7 +126,7 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     .gcl2 {
         padding: 0;
         height: 20px;
-        border-right: 1px solid #d0d0d0;
+        border-right: 2px solid #999;
         border-top: none;
         border-bottom: none;
         border-left: none;

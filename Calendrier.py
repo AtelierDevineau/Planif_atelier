@@ -13,11 +13,10 @@ COULEURS_PALETTE = {
     "Gris":     "#94A3B8",
 }
 
-#-------------CALLBACKS----------------------
-
-def garder_expander_ouvert(key_expander):
-    """Callback pour maintenir l'expander ouvert lors d'une interaction."""
-    st.session_state[key_expander] = True
+TACHES_TYPES = [
+    "Pré étude", "Etude", "Construction", "Serrurerie",
+    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
+]
 
 #-------------ONGLET-----------------------------
 
@@ -45,9 +44,6 @@ def crea_proj_tab():
                 f"**{projet['projet']}** - {len(projet['sous_taches'])} sous-tache(s)",
                 expanded=st.session_state[key_expander]
             ):
-                # On ne remet PAS à False ici — l'expander reste ouvert
-                # tant que l'utilisateur interagit dedans
-
                 # --------------- EDITION DU PROJET ---------------
                 new_proj = st.text_input(
                     "Nom du projet",
@@ -90,30 +86,31 @@ def crea_proj_tab():
                 )
 
                 # --------------- SOUS TACHES ----------------------
-                TACHES_TYPES = [
-                    "Pré étude", "Etude", "Construction", "Serrurerie",
-                    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
-                ]
                 st.markdown("**Sous-tâches**")
                 sous_taches = projet["sous_taches"]
                 a_supp = None
 
                 for j, st_data in enumerate(sous_taches):
                     nom_actuel = st_data["tache"]
-                    est_autre = nom_actuel not in TACHES_TYPES or nom_actuel == "Autre"
-                    index_type = TACHES_TYPES.index(nom_actuel) if nom_actuel in TACHES_TYPES else TACHES_TYPES.index("Autre")
 
+                    # Initialiser key_autre UNE SEULE FOIS depuis les données
                     key_autre = f"tache_est_autre_{i}_{j}"
                     if key_autre not in st.session_state:
-                        st.session_state[key_autre] = est_autre
+                        st.session_state[key_autre] = (nom_actuel not in TACHES_TYPES)
+
+                    index_type = (
+                        TACHES_TYPES.index(nom_actuel)
+                        if nom_actuel in TACHES_TYPES
+                        else TACHES_TYPES.index("Autre")
+                    )
 
                     if st.session_state[key_autre]:
-                        # Mode "Autre" : une ligne avec text_input + bouton retour + dates + poubelle
+                        # Mode "Autre" : text_input + bouton retour + dates + poubelle
                         cols = st.columns([2.5, 0.5, 2, 2, 0.6])
                         with cols[0]:
                             nom_autre = st.text_input(
-                                "Nom personnalisé",
-                                value=nom_actuel if nom_actuel != "Autre" else "",
+                                "Nom",
+                                value=nom_actuel if nom_actuel not in TACHES_TYPES else "",
                                 key=f"tache_autre_{i}_{j}",
                                 placeholder="Nom de la tâche...",
                                 label_visibility="collapsed"
@@ -124,18 +121,19 @@ def crea_proj_tab():
                                 st.session_state[key_autre] = False
                                 st.session_state[key_expander] = True
                                 st.rerun()
+                        idx_start, idx_end, idx_del = 2, 3, 4
                     else:
                         # Mode normal : selectbox + dates + poubelle
                         cols = st.columns([3, 2, 2, 0.6])
                         with cols[0]:
+                            ke = key_expander  # capturer dans la closure
                             choix_type = st.selectbox(
                                 "Type",
                                 options=TACHES_TYPES,
                                 index=index_type,
                                 key=f"tache_type_{i}_{j}",
                                 label_visibility="collapsed",
-                                on_change=garder_expander_ouvert,
-                                args=(key_expander,)
+                                on_change=lambda k=ke: st.session_state.__setitem__(k, True)
                             )
                             if choix_type == "Autre":
                                 st.session_state[key_autre] = True
@@ -143,18 +141,15 @@ def crea_proj_tab():
                                 st.rerun()
                             else:
                                 sous_taches[j]["tache"] = choix_type
-                    # Dates et poubelle : index différents selon le mode
-                    idx_start = 2 if st.session_state[key_autre] else 1
-                    idx_end = 3 if st.session_state[key_autre] else 2
-                    idx_del = 4 if st.session_state[key_autre] else 3
+                        idx_start, idx_end, idx_del = 1, 2, 3
+
                     with cols[idx_start]:
                         sous_taches[j]["start"] = st.date_input(
                             "Début",
                             value=date.fromisoformat(st_data["start"]),
                             key=f"start_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=garder_expander_ouvert,
-                            args=(key_expander,)
+                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         ).isoformat()
                     with cols[idx_end]:
                         sous_taches[j]["end"] = st.date_input(
@@ -162,8 +157,7 @@ def crea_proj_tab():
                             value=date.fromisoformat(st_data["end"]),
                             key=f"end_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=garder_expander_ouvert,
-                            args=(key_expander,)
+                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         ).isoformat()
                     with cols[idx_del]:
                         if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):

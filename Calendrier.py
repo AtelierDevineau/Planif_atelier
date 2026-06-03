@@ -64,16 +64,19 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
 
     nb_cols = len(colonnes)
 
-    css = """
+    nb_seps = sum(1 for c in colonnes if c["type"] == "sep")
+    largeur_totale = nb_jours * 14 + nb_seps * 3
+
+    css = f"""
     <style>
-    .gantt-wrap { overflow-x: auto; width: 100%; }
-    .gantt-table {
+    .gantt-wrap {{ overflow-x: auto; width: 100%; }}
+    .gantt-table {{
         border-collapse: collapse;
-        width: 100%;
-        min-width: 700px;
+        width: {largeur_totale}px;
+        table-layout: fixed;
         font-size: 0.82em;
-    }
-    .gh {
+    }}
+    .gh {{
         text-align: left;
         padding: 4px 6px;
         font-weight: bold;
@@ -85,38 +88,36 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         border-right: none;
         border-left: none;
         border-top: none;
-    }
-    /* Colonne séparateur header */
-    .gh-sep {
+    }}
+    .gh-sep {{
         background: #999;
         width: 3px;
         padding: 0;
         border: none;
-    }
-    .gc {
+    }}
+    .gc {{
         padding: 0;
         height: 24px;
         border-right: 1px solid #f0f0f0;
         border-top: none;
         border-bottom: none;
         border-left: none;
-    }
-    /* Colonne séparateur dans les lignes */
-    .gc-sep {
+    }}
+    .gc-sep {{
         background: #bbb;
         width: 3px;
         padding: 0;
         border: none;
         height: 24px;
-    }
-    .gc-sep2 {
+    }}
+    .gc-sep2 {{
         background: #bbb;
         width: 3px;
         padding: 0;
         border: none;
         height: 20px;
-    }
-    .gb1 {
+    }}
+    .gb1 {{
         padding: 0 8px;
         height: 24px;
         vertical-align: middle;
@@ -128,8 +129,8 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         overflow: hidden;
         text-overflow: ellipsis;
         border: none;
-    }
-    .gb2 {
+    }}
+    .gb2 {{
         padding: 0 8px;
         height: 20px;
         vertical-align: middle;
@@ -139,18 +140,18 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         overflow: hidden;
         text-overflow: ellipsis;
         border: none;
-    }
-    .gsep td {
+    }}
+    .gsep td {{
         border-bottom: 2px solid #ccc !important;
-    }
-    .gc2 {
+    }}
+    .gc2 {{
         padding: 0;
         height: 20px;
         border-right: 1px solid #f0f0f0;
         border-top: none;
         border-bottom: none;
         border-left: none;
-    }
+    }}
     </style>
     """
 
@@ -279,7 +280,7 @@ def calendrier_tab():
             selection_mode="single",
             default="8 semaines"
         )
-        nb_semaines = options_semaines[choix_semaines]
+        nb_semaines = options_semaines.get(choix_semaines, 8)
         projets = st.session_state.Projets_gantt
         data_proj = st.session_state.Data_proj
 

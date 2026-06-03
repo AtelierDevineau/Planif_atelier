@@ -33,6 +33,12 @@ def get_noms_assignes(nom_projet, nom_tache, data_proj):
 # -------------------------------------------------------
 
 def gantt_tableau(projets_data, nb_semaines, data_proj):
+    """
+    Gantt en tableau HTML.
+    - Une colonne séparateur grise de 3px entre chaque semaine (pas de bordure CSS)
+    - 2 lignes par sous-tâche : couleur pleine (nom) + couleur ~60% (ressources)
+    - Cellules fusionnées sur la durée de la tâche
+    """
     today = date.today()
     date_debut_grille = today
     date_fin_grille = today + timedelta(weeks=nb_semaines)
@@ -40,9 +46,23 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     jours = get_jours(date_debut_grille, date_fin_grille)
     lundis = get_lundis(date_debut_grille, date_fin_grille)
     nb_jours = len(jours)
-
-    # Index de chaque jour pour retrouver sa position rapidement
     jour_index = {j: i for i, j in enumerate(jours)}
+
+    # On construit une liste de "colonnes" : soit un jour, soit un séparateur
+    # Chaque élément : {"type": "jour", "jour": date} ou {"type": "sep"}
+    colonnes = []
+    for jour in jours:
+        if jour.weekday() == 0 and jour != jours[0]:  # lundi sauf le premier
+            colonnes.append({"type": "sep"})
+        colonnes.append({"type": "jour", "jour": jour})
+
+    # Reconstruire l'index colonne → index dans colonnes (pour les jours uniquement)
+    col_index = {}  # jour → index dans colonnes
+    for i, col in enumerate(colonnes):
+        if col["type"] == "jour":
+            col_index[col["jour"]] = i
+
+    nb_cols = len(colonnes)
 
     css = """
     <style>
@@ -54,19 +74,26 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         table-layout: fixed;
         font-size: 0.82em;
     }
-    /* Header semaine */
     .gh {
         text-align: left;
         padding: 4px 6px;
         font-weight: bold;
         font-size: 0.85em;
         background: #f5f5f5;
-        border-right: 2px solid #999;
         border-bottom: 2px solid #ccc;
         white-space: nowrap;
         overflow: hidden;
+        border-right: none;
+        border-left: none;
+        border-top: none;
     }
-    /* Cellule vide de grille */
+    /* Colonne séparateur header */
+    .gh-sep {
+        background: #999;
+        width: 3px;
+        padding: 0;
+        border: none;
+    }
     .gc {
         padding: 0;
         height: 24px;
@@ -75,16 +102,21 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         border-bottom: none;
         border-left: none;
     }
-    /* Cellule vide lundi (séparateur semaine) */
-    .gcl {
+    /* Colonne séparateur dans les lignes */
+    .gc-sep {
+        background: #bbb;
+        width: 3px;
         padding: 0;
+        border: none;
         height: 24px;
-        border-right: 2px solid #999;
-        border-top: none;
-        border-bottom: none;
-        border-left: none;
     }
-    /* Cellule fusionnée — ligne 1 (nom tâche) */
+    .gc-sep2 {
+        background: #bbb;
+        width: 3px;
+        padding: 0;
+        border: none;
+        height: 20px;
+    }
     .gb1 {
         padding: 0 8px;
         height: 24px;
@@ -98,7 +130,6 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         text-overflow: ellipsis;
         border: none;
     }
-    /* Cellule fusionnée — ligne 2 (noms ressources) */
     .gb2 {
         padding: 0 8px;
         height: 20px;
@@ -110,23 +141,13 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         text-overflow: ellipsis;
         border: none;
     }
-    /* Séparation entre projets */
     .gsep td {
         border-bottom: 2px solid #ccc !important;
     }
-    /* Cellules vides avant/après la barre sur ligne 2 */
     .gc2 {
         padding: 0;
         height: 20px;
         border-right: 1px solid #f0f0f0;
-        border-top: none;
-        border-bottom: none;
-        border-left: none;
-    }
-    .gcl2 {
-        padding: 0;
-        height: 20px;
-        border-right: 2px solid #999;
         border-top: none;
         border-bottom: none;
         border-left: none;
@@ -140,6 +161,8 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         jours_sem = [j for j in jours if lundi <= j < lundi + timedelta(weeks=1)]
         if not jours_sem:
             continue
+        if lundi != lundis[0]:
+            header += '<th class="gh-sep"></th>'
         label = f"Lun. {lundi.day}/{lundi.month}"
         header += f'<th colspan="{len(jours_sem)}" class="gh">{label}</th>'
     header += '</tr>'
@@ -147,10 +170,9 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     # ── LIGNES ───────────────────────────────────────────────────────────────
     rows = ""
 
-    for proj_idx, projet in enumerate(projets_data):
+    for projet in projets_data:
         nom_projet = projet["projet"]
         couleur = projet["couleur"]
-        # Ligne 2 : même teinte, opacité réduite
         couleur_sub = couleur + "99"
 
         for st_idx, sous_tache in enumerate(projet["sous_taches"]):
@@ -159,79 +181,62 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
             fin_st = date.fromisoformat(sous_tache["end"])
             noms = get_noms_assignes(nom_projet, nom_st, data_proj)
             noms_str = ", ".join(noms)
-
             is_last = st_idx == len(projet["sous_taches"]) - 1
 
-            # Intersection avec la fenêtre visible
             debut_visible = max(debut_st, date_debut_grille)
             fin_visible = min(fin_st, date_fin_grille)
             dans_fenetre = debut_visible < fin_visible
 
-            # Index de début et fin dans la grille
             if dans_fenetre:
-                idx_debut = jour_index.get(debut_visible, 0)
-                idx_fin = jour_index.get(fin_visible, nb_jours)
-                colspan_barre = idx_fin - idx_debut
+                ci_debut = col_index.get(debut_visible, 0)
+                ci_fin = col_index.get(fin_visible, nb_cols)
+                # colspan = nombre de colonnes entre ci_debut et ci_fin
+                # (inclut les séparateurs éventuels à l'intérieur)
+                colspan_barre = ci_fin - ci_debut
             else:
-                idx_debut = None
+                ci_debut = None
                 colspan_barre = 0
 
-            # ── Ligne 1 : nom de la sous-tâche dans la barre ──
+            # ── Ligne 1 ──
             row1 = '<tr>'
-            col = 0
-            while col < nb_jours:
-                jour = jours[col]
-                est_lundi = jour.weekday() == 0
-                cls_vide = "gcl" if est_lundi else "gc"
-
-                if dans_fenetre and col == idx_debut and colspan_barre > 0:
+            ci = 0
+            while ci < nb_cols:
+                col = colonnes[ci]
+                if col["type"] == "sep":
+                    row1 += '<td class="gc-sep"></td>'
+                    ci += 1
+                elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
                     row1 += (
                         f'<td colspan="{colspan_barre}" class="gb1" '
                         f'style="background:{couleur};">{nom_st}</td>'
                     )
-                    col += colspan_barre
-                elif dans_fenetre and idx_debut is not None and idx_debut <= col < idx_debut + colspan_barre:
-                    col += 1
-                    continue
+                    ci += colspan_barre
                 else:
-                    row1 += f'<td class="{cls_vide}"></td>'
-                    col += 1
+                    row1 += '<td class="gc"></td>'
+                    ci += 1
             row1 += '</tr>'
 
-            # ── Ligne 2 : noms des ressources ──
+            # ── Ligne 2 ──
             sep_cls = ' class="gsep"' if is_last else ''
             row2 = f'<tr{sep_cls}>'
-            col = 0
-            while col < nb_jours:
-                jour = jours[col]
-                est_lundi = jour.weekday() == 0
-                cls_vide = "gcl2" if est_lundi else "gc2"
-
-                if dans_fenetre and col == idx_debut and colspan_barre > 0:
+            ci = 0
+            while ci < nb_cols:
+                col = colonnes[ci]
+                if col["type"] == "sep":
+                    row2 += '<td class="gc-sep2"></td>'
+                    ci += 1
+                elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
                     row2 += (
                         f'<td colspan="{colspan_barre}" class="gb2" '
                         f'style="background:{couleur_sub};">{noms_str}</td>'
                     )
-                    col += colspan_barre
-                elif dans_fenetre and idx_debut is not None and idx_debut <= col < idx_debut + colspan_barre:
-                    col += 1
-                    continue
+                    ci += colspan_barre
                 else:
-                    row2 += f'<td class="{cls_vide}"></td>'
-                    col += 1
+                    row2 += '<td class="gc2"></td>'
+                    ci += 1
             row2 += '</tr>'
 
-            # ── Ligne séparatrice de semaines (hauteur 0, uniquement les bordures lundi) ──
-            row_sep = '<tr style="height:0px;">'
-            for jour in jours:
-                est_lundi = jour.weekday() == 0
-                if est_lundi:
-                    row_sep += '<td style="height:0px;padding:0;border-right:2px solid #999;border-top:none;border-bottom:none;border-left:none;"></td>'
-                else:
-                    row_sep += '<td style="height:0px;padding:0;border:none;"></td>'
-            row_sep += '</tr>'
-
-            rows += row1 + row2 + row_sep
+            rows += row1 + row2
 
     return f"""
     {css}

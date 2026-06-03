@@ -65,14 +65,8 @@ def inject_style():
         display: none !important;
     }}
 
-    /* Masquer le texte fantôme "_arr" sur les expanders */
-    [data-testid="stExpander"] summary div[data-testid="stMarkdownContainer"] > div > p {{
-        display: inline;
-    }}
-    details summary span.label {{
-        display: none !important;
-    }}
-    [data-testid="stExpander"] > details > summary > span:not([data-testid]) {{
+    /* Masquer le texte fantôme "_arr" dans les expanders */
+    [data-testid="stExpander"] details summary > span:first-child {{
         display: none !important;
     }}
 

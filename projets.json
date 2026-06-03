@@ -28,18 +28,18 @@
         "sous_taches": [
             {
                 "tache": "Conception",
-                "start": "2026-02-03",
-                "end": "2026-03-15"
+                "start": "2026-05-22",
+                "end": "2026-06-27"
             },
             {
                 "tache": "Fabrication",
-                "start": "2026-03-15",
-                "end": "2026-05-01"
+                "start": "2026-06-09",
+                "end": "2026-06-17"
             },
             {
                 "tache": "Transport",
-                "start": "2026-05-01",
-                "end": "2026-08-01"
+                "start": "2026-06-16",
+                "end": "2026-07-15"
             }
         ],
         "client": "TCE",

@@ -71,7 +71,6 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
         border-collapse: collapse;
         width: 100%;
         min-width: 700px;
-        table-layout: fixed;
         font-size: 0.82em;
     }
     .gh {
@@ -154,6 +153,15 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     }
     </style>
     """
+
+    # ── COLGROUP : largeurs fixes ─────────────────────────────────────────────
+    colgroup = '<colgroup>'
+    for col in colonnes:
+        if col["type"] == "sep":
+            colgroup += '<col style="width:3px;min-width:3px;max-width:3px;">'
+        else:
+            colgroup += '<col style="width:14px;min-width:14px;">'
+    colgroup += '</colgroup>'
 
     # ── HEADER ───────────────────────────────────────────────────────────────
     header = '<tr>'
@@ -242,6 +250,7 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     {css}
     <div class="gantt-wrap">
     <table class="gantt-table">
+        {colgroup}
         <thead>{header}</thead>
         <tbody>{rows}</tbody>
     </table>

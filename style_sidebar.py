@@ -65,8 +65,8 @@ def inject_style():
         display: none !important;
     }}
 
-    /* Masquer le texte fantôme "_arr" dans les expanders */
-    [data-testid="stExpander"] details summary > span:first-child {{
+    /* Masquer le texte fantôme "_arr" dans les expanders (icône affichée en texte) */
+    [data-testid="stIconMaterial"] {{
         display: none !important;
     }}
 

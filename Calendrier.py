@@ -150,8 +150,8 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
     for proj_idx, projet in enumerate(projets_data):
         nom_projet = projet["projet"]
         couleur = projet["couleur"]
-        # Ligne 2 : même couleur que ligne 1
-        couleur_sub = couleur
+        # Ligne 2 : même teinte, opacité réduite
+        couleur_sub = couleur + "99"
 
         for st_idx, sous_tache in enumerate(projet["sous_taches"]):
             nom_st = sous_tache["tache"]
@@ -185,14 +185,9 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
                 cls_vide = "gcl" if est_lundi else "gc"
 
                 if dans_fenetre and col == idx_debut and colspan_barre > 0:
-                    # Bordure gauche si la barre commence un lundi
-                    border_left = "border-left: 2px solid #999;" if est_lundi else ""
-                    # Bordure droite si la barre se termine juste avant un lundi
-                    jour_fin_barre = jours[min(idx_debut + colspan_barre, nb_jours - 1)]
-                    border_right = "border-right: 2px solid #999;" if jour_fin_barre.weekday() == 0 else ""
                     row1 += (
                         f'<td colspan="{colspan_barre}" class="gb1" '
-                        f'style="background:{couleur};{border_left}{border_right}">{nom_st}</td>'
+                        f'style="background:{couleur};">{nom_st}</td>'
                     )
                     col += colspan_barre
                 elif dans_fenetre and idx_debut is not None and idx_debut <= col < idx_debut + colspan_barre:
@@ -213,12 +208,9 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
                 cls_vide = "gcl2" if est_lundi else "gc2"
 
                 if dans_fenetre and col == idx_debut and colspan_barre > 0:
-                    border_left = "border-left: 2px solid #999;" if est_lundi else ""
-                    jour_fin_barre = jours[min(idx_debut + colspan_barre, nb_jours - 1)]
-                    border_right = "border-right: 2px solid #999;" if jour_fin_barre.weekday() == 0 else ""
                     row2 += (
                         f'<td colspan="{colspan_barre}" class="gb2" '
-                        f'style="background:{couleur_sub};{border_left}{border_right}">{noms_str}</td>'
+                        f'style="background:{couleur_sub};">{noms_str}</td>'
                     )
                     col += colspan_barre
                 elif dans_fenetre and idx_debut is not None and idx_debut <= col < idx_debut + colspan_barre:
@@ -229,7 +221,17 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
                     col += 1
             row2 += '</tr>'
 
-            rows += row1 + row2
+            # ── Ligne séparatrice de semaines (hauteur 0, uniquement les bordures lundi) ──
+            row_sep = '<tr style="height:0px;">'
+            for jour in jours:
+                est_lundi = jour.weekday() == 0
+                if est_lundi:
+                    row_sep += '<td style="height:0px;padding:0;border-right:2px solid #999;border-top:none;border-bottom:none;border-left:none;"></td>'
+                else:
+                    row_sep += '<td style="height:0px;padding:0;border:none;"></td>'
+            row_sep += '</tr>'
+
+            rows += row1 + row2 + row_sep
 
     return f"""
     {css}

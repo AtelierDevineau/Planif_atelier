@@ -101,6 +101,13 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
         border-bottom: none;
         border-left: none;
     }}
+    .gantt-table tr {{
+        border-top: none !important;
+        border-bottom: none !important;
+    }}
+    .gantt-table td, .gantt-table th {{
+        border-top: none !important;
+    }}
     .gc-sep {{
         background: #bbb;
         width: 3px;
@@ -254,8 +261,7 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
             if j <= today and j.weekday() == 0 and j != date_debut_grille
         )
         scroll_px = jours_avant_today * 14 + seps_avant * 3
-        # Décaler un peu pour voir quelques jours avant
-        scroll_px = max(0, scroll_px - 50)
+        scroll_px = max(0, scroll_px)
     else:
         scroll_px = 0
 

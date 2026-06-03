@@ -40,6 +40,11 @@
                 "tache": "Représentation",
                 "start": "2026-07-29",
                 "end": "2026-08-12"
+            },
+            {
+                "tache": "ll",
+                "start": "2026-08-12",
+                "end": "2026-08-26"
             }
         ],
         "client": "TCE",

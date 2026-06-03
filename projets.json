@@ -35,6 +35,11 @@
                 "tache": "Transport",
                 "start": "2026-07-15",
                 "end": "2026-07-29"
+            },
+            {
+                "tache": "Représentation",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
             }
         ],
         "client": "TCE",

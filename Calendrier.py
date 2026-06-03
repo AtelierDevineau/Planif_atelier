@@ -103,32 +103,31 @@ def crea_proj_tab():
                     est_autre = nom_actuel not in TACHES_TYPES or nom_actuel == "Autre"
                     index_type = TACHES_TYPES.index(nom_actuel) if nom_actuel in TACHES_TYPES else TACHES_TYPES.index("Autre")
 
-                    # Clé pour suivre si "Autre" est actif sur cette ligne
                     key_autre = f"tache_est_autre_{i}_{j}"
                     if key_autre not in st.session_state:
                         st.session_state[key_autre] = est_autre
 
-                    cols = st.columns([3, 2, 2, 0.6])
-                    with cols[0]:
-                        if st.session_state[key_autre]:
-                            # Mode "Autre" : text_input qui remplace le selectbox
-                            col_txt, col_back = st.columns([4, 1])
-                            with col_txt:
-                                nom_autre = st.text_input(
-                                    "Nom personnalisé",
-                                    value=nom_actuel if nom_actuel != "Autre" else "",
-                                    key=f"tache_autre_{i}_{j}",
-                                    placeholder="Nom de la tâche...",
-                                    label_visibility="collapsed"
-                                )
-                                sous_taches[j]["tache"] = nom_autre.strip() if nom_autre.strip() else "Autre"
-                            with col_back:
-                                if st.button("↩", key=f"tache_back_{i}_{j}", help="Revenir aux tâches types"):
-                                    st.session_state[key_autre] = False
-                                    st.session_state[key_expander] = True
-                                    st.rerun()
-                        else:
-                            # Mode normal : selectbox des tâches types
+                    if st.session_state[key_autre]:
+                        # Mode "Autre" : une ligne avec text_input + bouton retour + dates + poubelle
+                        cols = st.columns([2.5, 0.5, 2, 2, 0.6])
+                        with cols[0]:
+                            nom_autre = st.text_input(
+                                "Nom personnalisé",
+                                value=nom_actuel if nom_actuel != "Autre" else "",
+                                key=f"tache_autre_{i}_{j}",
+                                placeholder="Nom de la tâche...",
+                                label_visibility="collapsed"
+                            )
+                            sous_taches[j]["tache"] = nom_autre.strip() if nom_autre.strip() else "Autre"
+                        with cols[1]:
+                            if st.button("↩", key=f"tache_back_{i}_{j}", help="Revenir aux tâches types"):
+                                st.session_state[key_autre] = False
+                                st.session_state[key_expander] = True
+                                st.rerun()
+                    else:
+                        # Mode normal : selectbox + dates + poubelle
+                        cols = st.columns([3, 2, 2, 0.6])
+                        with cols[0]:
                             choix_type = st.selectbox(
                                 "Type",
                                 options=TACHES_TYPES,
@@ -144,7 +143,11 @@ def crea_proj_tab():
                                 st.rerun()
                             else:
                                 sous_taches[j]["tache"] = choix_type
-                    with cols[1]:
+                    # Dates et poubelle : index différents selon le mode
+                    idx_start = 2 if st.session_state[key_autre] else 1
+                    idx_end = 3 if st.session_state[key_autre] else 2
+                    idx_del = 4 if st.session_state[key_autre] else 3
+                    with cols[idx_start]:
                         sous_taches[j]["start"] = st.date_input(
                             "Début",
                             value=date.fromisoformat(st_data["start"]),
@@ -153,7 +156,7 @@ def crea_proj_tab():
                             on_change=garder_expander_ouvert,
                             args=(key_expander,)
                         ).isoformat()
-                    with cols[2]:
+                    with cols[idx_end]:
                         sous_taches[j]["end"] = st.date_input(
                             "Fin",
                             value=date.fromisoformat(st_data["end"]),
@@ -162,7 +165,7 @@ def crea_proj_tab():
                             on_change=garder_expander_ouvert,
                             args=(key_expander,)
                         ).isoformat()
-                    with cols[3]:
+                    with cols[idx_del]:
                         if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):
                             a_supp = j
 

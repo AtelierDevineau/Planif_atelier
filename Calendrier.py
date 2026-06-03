@@ -69,7 +69,8 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     <style>
     .gantt-wrap {{ overflow-x: auto; width: 100%; }}
     .gantt-table {{
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         width: {largeur_totale}px;
         table-layout: fixed;
         font-size: 0.82em;
@@ -81,11 +82,11 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
         font-size: 0.85em;
         background: #f5f5f5;
         border-bottom: 2px solid #ccc;
-        white-space: nowrap;
-        overflow: hidden;
+        border-top: none;
         border-right: none;
         border-left: none;
-        border-top: none;
+        white-space: nowrap;
+        overflow: hidden;
     }}
     .gh-sep {{
         background: #999;
@@ -100,13 +101,6 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
         border-top: none;
         border-bottom: none;
         border-left: none;
-    }}
-    .gantt-table tr {{
-        border-top: none !important;
-        border-bottom: none !important;
-    }}
-    .gantt-table td, .gantt-table th {{
-        border-top: none !important;
     }}
     .gc-sep {{
         background: #bbb;
@@ -275,10 +269,10 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     </table>
     </div>
     <script>
-    (function() {{
+    setTimeout(function() {{
         var el = document.getElementById("{gantt_id}");
         if (el) {{ el.scrollLeft = {scroll_px}; }}
-    }})();
+    }}, 100);
     </script>
     """
 

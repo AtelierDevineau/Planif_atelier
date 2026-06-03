@@ -12,6 +12,11 @@
                 "tache": "Construction",
                 "start": "2026-05-30",
                 "end": "2026-06-27"
+            },
+            {
+                "tache": "wow",
+                "start": "2026-06-27",
+                "end": "2026-07-11"
             }
         ],
         "client": "TCE",

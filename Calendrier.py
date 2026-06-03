@@ -33,7 +33,7 @@ def get_noms_assignes(nom_projet, nom_tache, data_proj):
 # CONSTRUCTION DU GANTT TABLEAU
 # -------------------------------------------------------
 
-def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, gantt_id="gantt"):
+def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, gantt_id="gantt", font_face=""):
     """
     Gantt en tableau HTML sur toute la période du planning.
     - Scroll horizontal : aujourd'hui est visible au chargement
@@ -68,6 +68,10 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
 
     css = f"""
     <style>
+    {font_face}
+    body, table, td, th {{
+        font-family: 'GTWalsheim', sans-serif;
+    }}
     .gantt-wrap {{ overflow-x: auto; width: 100%; }}
     .gantt-table {{
         border-collapse: separate;
@@ -297,6 +301,24 @@ def calendrier_tab():
         projets = st.session_state.Projets_gantt
         data_proj = st.session_state.Data_proj
 
+        # Charger la police GT Walsheim pour l'iframe
+        import base64 as _b64, os as _os
+        font_face = ""
+        font_path = _os.path.join(_os.path.dirname(__file__), "fonts", "GT-Walsheim-Regular.ttf")
+        try:
+            with open(font_path, "rb") as f:
+                font_b64 = _b64.b64encode(f.read()).decode("utf-8")
+            font_face = f"""
+            @font-face {{
+                font-family: 'GTWalsheim';
+                src: url(data:font/truetype;base64,{font_b64}) format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }}
+            """
+        except FileNotFoundError:
+            pass
+
         # Calculer la plage de dates depuis toutes les sous-tâches
         toutes_dates = [
             date.fromisoformat(st_data[cle])
@@ -314,7 +336,7 @@ def calendrier_tab():
 
         st.markdown("#### Vue d'ensemble")
         if projets:
-            html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global")
+            html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
             components.html(html_global, height=max(300, 60 + sum(len(p["sous_taches"]) for p in projets) * 50), scrolling=False)
         else:
             st.info("Aucun projet à afficher.")
@@ -336,7 +358,7 @@ def calendrier_tab():
                 ]
                 d_debut = min(min(dates_proj), today) - timedelta(days=7)
                 d_fin = max(dates_proj) + timedelta(days=7)
-                html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail")
+                html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail", font_face)
                 nb_st = len(projet_data["sous_taches"])
                 components.html(html_detail, height=max(200, 60 + nb_st * 50), scrolling=False)
             else:

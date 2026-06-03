@@ -4,16 +4,6 @@
         "couleur": "#FF6C6C",
         "sous_taches": [
             {
-                "tache": "Conception",
-                "start": "2026-01-01",
-                "end": "2026-02-01"
-            },
-            {
-                "tache": "Fabrication décors",
-                "start": "2026-02-01",
-                "end": "2026-03-15"
-            },
-            {
                 "tache": "Montage",
                 "start": "2026-03-15",
                 "end": "2026-05-30"
@@ -27,17 +17,7 @@
         "couleur": "#FFBD45",
         "sous_taches": [
             {
-                "tache": "Conception",
-                "start": "2026-05-22",
-                "end": "2026-06-27"
-            },
-            {
-                "tache": "Fabrication",
-                "start": "2026-06-09",
-                "end": "2026-06-17"
-            },
-            {
-                "tache": "Transport",
+                "tache": "Etude",
                 "start": "2026-06-16",
                 "end": "2026-07-15"
             }

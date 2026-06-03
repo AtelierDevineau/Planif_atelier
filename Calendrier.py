@@ -1,243 +1,405 @@
 import streamlit as st
+import streamlit.components.v1 as components
+from streamlit_calendar import calendar
 from datetime import date, timedelta
-from donnees import sauvegarder_projets_github, sauvegarder_assignations_github
+from donnees import Options_cal, build_absences_cal, sauvegarder_ressources_github
 
-#-------------AFFICHAGE----------------------
-COULEURS_PALETTE = {
-    "Rouge":    "#FF6C6C",
-    "Orange":   "#FFBD45",
-    "Bleu":     "#63CDEB",
-    "Vert":     "#6BCB77",
-    "Violet":   "#A78BFA",
-    "Rose":     "#F472B6",
-    "Gris":     "#94A3B8",
-}
+# -------------------------------------------------------
+# UTILITAIRES
+# -------------------------------------------------------
 
-TACHES_TYPES = [
-    "Pré étude", "Etude", "Construction", "Serrurerie",
-    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
-]
+def get_lundis(date_debut, date_fin):
+    lundis = []
+    cur = date_debut - timedelta(days=date_debut.weekday())
+    while cur <= date_fin:
+        lundis.append(cur)
+        cur += timedelta(weeks=1)
+    return lundis
 
-#-------------ONGLET-----------------------------
+def get_jours(date_debut, date_fin):
+    jours = []
+    cur = date_debut
+    while cur <= date_fin:
+        jours.append(cur)
+        cur += timedelta(days=1)
+    return jours
 
-def crea_proj_tab():
-    st.subheader("Gestion des projets")
-    projets = st.session_state.Projets_gantt
+def get_noms_assignes(nom_projet, nom_tache, data_proj):
+    data_st = data_proj.get(nom_projet, {}).get(nom_tache, {})
+    return [a["Nom"] for a in data_st.get("Assignations", [])]
 
-    if st.session_state.get("msg_succes"):
-        st.success(st.session_state.msg_succes)
-        st.session_state.msg_succes = None
 
-    # ---------- LISTE PROJETS EXISTANTS ------------
-    if projets:
-        st.subheader("Projets existants")
+# -------------------------------------------------------
+# CONSTRUCTION DU GANTT TABLEAU
+# -------------------------------------------------------
 
-        couleurs_prises = {p["couleur"] for p in projets}
+def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, gantt_id="gantt", font_face=""):
+    """
+    Gantt en tableau HTML sur toute la période du planning.
+    - Scroll horizontal : aujourd'hui est visible au chargement
+    - Séparateurs de semaine en colonne grise
+    - 2 lignes par sous-tâche
+    """
+    today = date.today()
 
-        for i, projet in enumerate(projets):
-            couleur = projet["couleur"]
-            key_expander = f"__xpnd_p{i}__"
-            if key_expander not in st.session_state:
-                st.session_state[key_expander] = False
+    jours = get_jours(date_debut_grille, date_fin_grille)
+    lundis = get_lundis(date_debut_grille, date_fin_grille)
+    nb_jours = len(jours)
+    jour_index = {j: i for i, j in enumerate(jours)}
 
-            with st.expander(
-                f"**{projet['projet']}** - {len(projet['sous_taches'])} sous-tache(s)",
-                expanded=st.session_state[key_expander]
-            ):
-                # --------------- EDITION DU PROJET ---------------
-                new_proj = st.text_input(
-                    "Nom du projet",
-                    value=projet["projet"],
-                    key=f"nom_{i}"
-                )
+    # On construit une liste de "colonnes" : soit un jour, soit un séparateur
+    # Chaque élément : {"type": "jour", "jour": date} ou {"type": "sep"}
+    colonnes = []
+    for jour in jours:
+        if jour.weekday() == 0 and jour != jours[0]:  # lundi sauf le premier
+            colonnes.append({"type": "sep"})
+        colonnes.append({"type": "jour", "jour": jour})
 
-                col_client, col_couleur = st.columns([2, 1])
-                with col_client:
-                    new_client = st.text_input(
-                        "Client",
-                        value=projet.get("client", ""),
-                        key=f"client_{i}",
-                        placeholder="Nom du client"
+    # Reconstruire l'index colonne → index dans colonnes (pour les jours uniquement)
+    col_index = {}  # jour → index dans colonnes
+    for i, col in enumerate(colonnes):
+        if col["type"] == "jour":
+            col_index[col["jour"]] = i
+
+    nb_cols = len(colonnes)
+
+    nb_seps = sum(1 for c in colonnes if c["type"] == "sep")
+    largeur_totale = nb_jours * 14 + nb_seps * 3
+
+    css = f"""
+    <style>
+    {font_face}
+    body, table, td, th {{
+        font-family: 'GTWalsheim', sans-serif;
+    }}
+    .gantt-wrap {{ overflow-x: auto; width: 100%; }}
+    .gantt-table {{
+        border-collapse: separate;
+        border-spacing: 0;
+        width: {largeur_totale}px;
+        table-layout: fixed;
+        font-size: 0.82em;
+    }}
+    .gh {{
+        text-align: left;
+        padding: 4px 6px;
+        font-weight: bold;
+        font-size: 0.85em;
+        background: #f5f5f5;
+        border-bottom: 2px solid #ccc;
+        border-top: none;
+        border-right: none;
+        border-left: none;
+        white-space: nowrap;
+        overflow: hidden;
+    }}
+    .gh-sep {{
+        background: #999;
+        width: 3px;
+        padding: 0;
+        border: none;
+    }}
+    .gc {{
+        padding: 0;
+        height: 24px;
+        border-right: 1px solid #f0f0f0;
+        border-top: none;
+        border-bottom: none;
+        border-left: none;
+    }}
+    .gc-sep {{
+        background: #bbb;
+        width: 3px;
+        padding: 0;
+        border: none;
+        height: 24px;
+    }}
+    .gc-sep2 {{
+        background: #bbb;
+        width: 3px;
+        padding: 0;
+        border: none;
+        height: 20px;
+    }}
+    .gb1 {{
+        padding: 0 8px;
+        height: 24px;
+        vertical-align: middle;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.85em;
+        color: #222;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: none;
+    }}
+    .gb2 {{
+        padding: 0 8px;
+        height: 20px;
+        vertical-align: middle;
+        font-size: 0.78em;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: none;
+    }}
+    .gsep td {{
+        border-bottom: 2px solid #ccc !important;
+    }}
+    .gc2 {{
+        padding: 0;
+        height: 20px;
+        border-right: 1px solid #f0f0f0;
+        border-top: none;
+        border-bottom: none;
+        border-left: none;
+    }}
+    </style>
+    """
+
+    # ── COLGROUP : largeurs fixes ─────────────────────────────────────────────
+    colgroup = '<colgroup>'
+    for col in colonnes:
+        if col["type"] == "sep":
+            colgroup += '<col style="width:3px;min-width:3px;max-width:3px;">'
+        else:
+            colgroup += '<col style="width:14px;min-width:14px;">'
+    colgroup += '</colgroup>'
+
+    # ── HEADER ───────────────────────────────────────────────────────────────
+    header = '<tr>'
+    for lundi in lundis:
+        jours_sem = [j for j in jours if lundi <= j < lundi + timedelta(weeks=1)]
+        if not jours_sem:
+            continue
+        if lundi != lundis[0]:
+            header += '<th class="gh-sep"></th>'
+        label = f"Lun. {lundi.day}/{lundi.month}"
+        header += f'<th colspan="{len(jours_sem)}" class="gh">{label}</th>'
+    header += '</tr>'
+
+    # ── LIGNES ───────────────────────────────────────────────────────────────
+    rows = ""
+
+    for projet in projets_data:
+        nom_projet = projet["projet"]
+        couleur = projet["couleur"]
+        couleur_sub = couleur + "99"
+
+        for st_idx, sous_tache in enumerate(projet["sous_taches"]):
+            nom_st = sous_tache["tache"]
+            debut_st = date.fromisoformat(sous_tache["start"])
+            fin_st = date.fromisoformat(sous_tache["end"])
+            noms = get_noms_assignes(nom_projet, nom_st, data_proj)
+            noms_str = ", ".join(noms)
+            is_last = st_idx == len(projet["sous_taches"]) - 1
+
+            debut_visible = max(debut_st, date_debut_grille)
+            fin_visible = min(fin_st, date_fin_grille)
+            dans_fenetre = debut_visible < fin_visible
+
+            if dans_fenetre:
+                ci_debut = col_index.get(debut_visible, 0)
+                ci_fin = col_index.get(fin_visible, nb_cols)
+                # colspan = nombre de colonnes entre ci_debut et ci_fin
+                # (inclut les séparateurs éventuels à l'intérieur)
+                colspan_barre = ci_fin - ci_debut
+            else:
+                ci_debut = None
+                colspan_barre = 0
+
+            # ── Ligne 1 ──
+            row1 = '<tr>'
+            ci = 0
+            while ci < nb_cols:
+                col = colonnes[ci]
+                if col["type"] == "sep":
+                    row1 += '<td class="gc-sep"></td>'
+                    ci += 1
+                elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
+                    row1 += (
+                        f'<td colspan="{colspan_barre}" class="gb1" '
+                        f'style="background:{couleur};">{nom_st}</td>'
                     )
-                with col_couleur:
-                    couleurs_disponibles = {
-                        nom: hex_
-                        for nom, hex_ in COULEURS_PALETTE.items()
-                        if hex_ == couleur or hex_ not in couleurs_prises
-                    }
-                    noms_disponibles = list(couleurs_disponibles.keys())
-                    hex_disponibles = list(couleurs_disponibles.values())
-                    index_couleur = hex_disponibles.index(couleur) if couleur in hex_disponibles else 0
-                    choix_couleur = st.selectbox(
-                        "Couleur",
-                        options=noms_disponibles,
-                        index=index_couleur,
-                        key=f"couleur_{i}",
-                        format_func=lambda nom: f"{nom} ({COULEURS_PALETTE[nom]})"
+                    ci += colspan_barre
+                else:
+                    row1 += '<td class="gc"></td>'
+                    ci += 1
+            row1 += '</tr>'
+
+            # ── Ligne 2 ──
+            sep_cls = ' class="gsep"' if is_last else ''
+            row2 = f'<tr{sep_cls}>'
+            ci = 0
+            while ci < nb_cols:
+                col = colonnes[ci]
+                if col["type"] == "sep":
+                    row2 += '<td class="gc-sep2"></td>'
+                    ci += 1
+                elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
+                    row2 += (
+                        f'<td colspan="{colspan_barre}" class="gb2" '
+                        f'style="background:{couleur_sub};">{noms_str}</td>'
                     )
-                new_color = COULEURS_PALETTE[choix_couleur]
+                    ci += colspan_barre
+                else:
+                    row2 += '<td class="gc2"></td>'
+                    ci += 1
+            row2 += '</tr>'
 
-                new_description = st.text_area(
-                    "Description",
-                    value=projet.get("description", ""),
-                    key=f"description_{i}",
-                    placeholder="Décrivez le projet en quelques mots...",
-                    height=80
-                )
+            rows += row1 + row2
 
-                # --------------- SOUS TACHES ----------------------
-                st.markdown("**Sous-tâches**")
-                sous_taches = projet["sous_taches"]
-                a_supp = None
+    # Calculer le scroll initial : position d'aujourd'hui dans la grille
+    if today >= date_debut_grille:
+        jours_avant_today = (today - date_debut_grille).days
+        # Compter les séparateurs avant today
+        seps_avant = sum(
+            1 for j in jours
+            if j <= today and j.weekday() == 0 and j != date_debut_grille
+        )
+        scroll_px = jours_avant_today * 14 + seps_avant * 3
+        scroll_px = max(0, scroll_px)
+    else:
+        scroll_px = 0
 
-                for j, st_data in enumerate(sous_taches):
-                    nom_actuel = st_data["tache"]
+    return f"""
+    {css}
+    <div class="gantt-wrap" id="{gantt_id}">
+    <table class="gantt-table">
+        {colgroup}
+        <thead>{header}</thead>
+        <tbody>{rows}</tbody>
+    </table>
+    </div>
+    <script>
+    setTimeout(function() {{
+        var el = document.getElementById("{gantt_id}");
+        if (el) {{
+            el.scrollLeft = {scroll_px};
+        }}
+    }}, 300);
+    </script>
+    """
 
-                    # Si le nom est hors liste, on l'ajoute comme option unique pour ce selectbox
-                    options_j = TACHES_TYPES[:]
-                    if nom_actuel not in TACHES_TYPES:
-                        options_j = [nom_actuel] + TACHES_TYPES
-                    index_type = options_j.index(nom_actuel) if nom_actuel in options_j else options_j.index("Autre")
 
-                    cols = st.columns([3, 2, 2, 0.6])
-                    with cols[0]:
-                        choix_type = st.selectbox(
-                            "Type",
-                            options=options_j,
-                            index=index_type,
-                            key=f"tache_type_{i}_{j}",
-                            label_visibility="collapsed",
-                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
-                        )
-                        if choix_type == "Autre":
-                            nom_custom = st.text_input(
-                                "Nom personnalisé",
-                                key=f"tache_custom_{i}_{j}",
-                                placeholder="Nom de la tâche...",
-                                label_visibility="collapsed"
-                            )
-                            if st.button("Valider", key=f"tache_valider_{i}_{j}"):
-                                if nom_custom.strip():
-                                    sous_taches[j]["tache"] = nom_custom.strip()
-                                    st.session_state[key_expander] = True
-                                    st.rerun()
-                        else:
-                            sous_taches[j]["tache"] = choix_type
-                    with cols[1]:
-                        sous_taches[j]["start"] = st.date_input(
-                            "Début",
-                            value=date.fromisoformat(st_data["start"]),
-                            key=f"start_{i}_{j}",
-                            label_visibility="collapsed",
-                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
-                        ).isoformat()
-                    with cols[2]:
-                        sous_taches[j]["end"] = st.date_input(
-                            "Fin",
-                            value=date.fromisoformat(st_data["end"]),
-                            key=f"end_{i}_{j}",
-                            label_visibility="collapsed",
-                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
-                        ).isoformat()
-                    with cols[3]:
-                        if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):
-                            a_supp = j
+# -------------------------------------------------------
+# ONGLET CALENDRIER
+# -------------------------------------------------------
 
-                if a_supp is not None:
-                    sous_taches.pop(a_supp)
-                    st.session_state[key_expander] = True
-                    st.rerun()
-
-                # ---------------- AJOUT SOUS-TÂCHE -----------------------
-                if st.button("➕ Ajouter une sous-tâche", key=f"add_st_{i}"):
-                    if sous_taches:
-                        last_end = date.fromisoformat(sous_taches[-1]["end"])
-                    else:
-                        last_end = date.today()
-                    sous_taches.append({
-                        "tache": "Pré étude",
-                        "start": last_end.isoformat(),
-                        "end": (last_end + timedelta(weeks=2)).isoformat(),
-                    })
-                    st.session_state[key_expander] = True
-                    st.rerun()
-
-                # -------------- BOUTONS --------------------------
-                col_save, col_del = st.columns([1, 1])
-                with col_save:
-                    if st.button("✅ Enregistrer les modifications", key=f"save_{i}"):
-                        projets[i]["projet"] = new_proj
-                        projets[i]["couleur"] = new_color
-                        projets[i]["sous_taches"] = sous_taches
-                        projets[i]["client"] = new_client
-                        projets[i]["description"] = new_description
-                        nouveau_sha = sauvegarder_projets_github(
-                            projets, st.session_state.projets_sha
-                        )
-                        st.session_state.projets_sha = nouveau_sha
-                        st.session_state[key_expander] = True
-                        st.session_state.msg_succes = f"Projet « {new_proj} » mis à jour et sauvegardé."
-                        st.rerun()
-                with col_del:
-                    if st.button("🗑 Supprimer ce projet", key=f"suppr_{i}", type="secondary"):
-                        nom_projet = projet["projet"]
-                        if nom_projet in st.session_state.Data_proj and st.session_state.Data_proj[nom_projet].get("Assignations"):
-                            nb = st.session_state.Data_proj[nom_projet].get("Nb_ressources", 0)
-                            st.warning(
-                                f"⚠️ Le projet **{nom_projet}** a {nb} ressource(s) assignée(s). "
-                                f"Ces assignations seront supprimées."
-                            )
-                        projets.pop(i)
-                        nouveau_sha = sauvegarder_projets_github(
-                            projets, st.session_state.projets_sha
-                        )
-                        st.session_state.projets_sha = nouveau_sha
-                        if nom_projet in st.session_state.Data_proj:
-                            del st.session_state.Data_proj[nom_projet]
-                            nouveau_sha_assig = sauvegarder_assignations_github(
-                                st.session_state.Data_proj,
-                                st.session_state.assignations_sha
-                            )
-                            st.session_state.assignations_sha = nouveau_sha_assig
-                        st.session_state.msg_succes = f"Projet « {nom_projet} » supprimé."
-                        st.rerun()
-
-    # ----------------- CREATION NOUVEAU PROJET ----------------------
-    st.divider()
-    st.subheader("Nouveau projet")
-
-    couleurs_prises = {p["couleur"] for p in projets}
-    couleur_defaut = next(
-        (hex_ for hex_ in COULEURS_PALETTE.values() if hex_ not in couleurs_prises),
-        list(COULEURS_PALETTE.values())[0]
+def calendrier_tab():
+    st.subheader('Calendrier')
+    selection = st.pills(
+        " ",
+        ["Projets", "Absences"],
+        selection_mode="single",
+        default="Projets"
     )
 
-    with st.form("form_nouveau_projet", clear_on_submit=True):
-        nom_new = st.text_input("Nom du projet")
-        client_new = st.text_input("Client", placeholder="Nom du client")
-        description_new = st.text_area(
-            "Description",
-            placeholder="Décrivez le projet en quelques mots...",
-            height=80
-        )
-        submitted = st.form_submit_button("Créer le projet")
+    if selection == "Projets":
+        projets = st.session_state.Projets_gantt
+        data_proj = st.session_state.Data_proj
 
-    if submitted:
-        if not nom_new.strip():
-            st.error("Merci de saisir le nom du projet")
-        elif any(p["projet"] == nom_new.strip() for p in projets):
-            st.error("Un projet avec ce nom existe déjà")
+        # Charger la police GT Walsheim pour l'iframe
+        import base64 as _b64, os as _os
+        font_face = ""
+        font_path = _os.path.join(_os.path.dirname(__file__), "fonts", "GT-Walsheim-Regular.ttf")
+        try:
+            with open(font_path, "rb") as f:
+                font_b64 = _b64.b64encode(f.read()).decode("utf-8")
+            font_face = f"""
+            @font-face {{
+                font-family: 'GTWalsheim';
+                src: url(data:font/truetype;base64,{font_b64}) format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }}
+            """
+        except FileNotFoundError:
+            pass
+
+        # Calculer la plage de dates depuis toutes les sous-tâches
+        toutes_dates = [
+            date.fromisoformat(st_data[cle])
+            for p in projets
+            for st_data in p.get("sous_taches", [])
+            for cle in ("start", "end")
+        ]
+        today = date.today()
+        if toutes_dates:
+            date_debut_grille = min(min(toutes_dates), today) - timedelta(days=7)
+            date_fin_grille = max(toutes_dates) + timedelta(days=7)
         else:
-            projets.append({
-                "projet": nom_new.strip(),
-                "couleur": couleur_defaut,
-                "client": client_new.strip(),
-                "description": description_new.strip(),
-                "sous_taches": []
-            })
-            nouveau_sha = sauvegarder_projets_github(
-                projets, st.session_state.projets_sha
+            date_debut_grille = today - timedelta(days=7)
+            date_fin_grille = today + timedelta(weeks=12)
+
+        st.markdown("#### Vue d'ensemble")
+        if projets:
+            html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
+            components.html(html_global, height=max(300, 60 + sum(len(p["sous_taches"]) for p in projets) * 50), scrolling=False)
+        else:
+            st.info("Aucun projet à afficher.")
+
+        st.markdown("#### Vue détaillée")
+        if projets:
+            noms_projets = [p["projet"] for p in projets]
+            projet_choisi = st.selectbox(
+                "Sélectionner un projet :",
+                options=noms_projets,
+                key="gantt_detail_projet"
             )
-            st.session_state.projets_sha = nouveau_sha
-            st.session_state.msg_succes = f"Projet « {nom_new.strip()} » créé et sauvegardé ! Dépliez-le ci-dessus pour ajouter des sous-tâches et choisir sa couleur."
-            st.rerun()
+            projet_data = next(p for p in projets if p["projet"] == projet_choisi)
+            if projet_data["sous_taches"]:
+                dates_proj = [
+                    date.fromisoformat(st_data[cle])
+                    for st_data in projet_data["sous_taches"]
+                    for cle in ("start", "end")
+                ]
+                d_debut = min(min(dates_proj), today) - timedelta(days=7)
+                d_fin = max(dates_proj) + timedelta(days=7)
+                html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail", font_face)
+                nb_st = len(projet_data["sous_taches"])
+                components.html(html_detail, height=max(200, 60 + nb_st * 50), scrolling=False)
+            else:
+                st.info("Ce projet n'a pas encore de sous-tâches.")
+
+    if selection == "Absences":
+        with st.form("form_absence", clear_on_submit=True):
+            noms_ressources = [r["Nom"] for r in st.session_state.Ressources_base]
+            col_nom, col_debut, col_fin = st.columns([2, 1, 1])
+            with col_nom:
+                nom_choisi = st.selectbox("Ressource", options=noms_ressources)
+            with col_debut:
+                date_debut = st.date_input("Début", value=date.today())
+            with col_fin:
+                date_fin = st.date_input("Fin", value=date.today() + timedelta(days=7))
+            submitted = st.form_submit_button("➕ Ajouter l'absence")
+
+        if submitted:
+            if date_fin <= date_debut:
+                st.error("La date de fin doit être après la date de début.")
+            else:
+                for r in st.session_state.Ressources_base:
+                    if r["Nom"] == nom_choisi:
+                        if "absences" not in r:
+                            r["absences"] = []
+                        r["absences"].append({
+                            "start": date_debut.isoformat(),
+                            "end": date_fin.isoformat()
+                        })
+                        break
+                nouveau_sha = sauvegarder_ressources_github(
+                    st.session_state.Ressources_base,
+                    st.session_state.ressources_sha
+                )
+                st.session_state.ressources_sha = nouveau_sha
+                st.session_state.msg_succes = f"Absence de {nom_choisi} ajoutée."
+                st.rerun()
+
+        if st.session_state.get("msg_succes"):
+            st.success(st.session_state.msg_succes)
+            st.session_state.msg_succes = None
+
+        absences_cal = build_absences_cal()
+        calendar(events=absences_cal, options=Options_cal)

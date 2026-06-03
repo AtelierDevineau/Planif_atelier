@@ -4,39 +4,15 @@ from donnees import sauvegarder_projets_github, sauvegarder_assignations_github
 
 #-------------AFFICHAGE----------------------
 COULEURS_PALETTE = {
-    "🔴":    "#FF6C6C",
-    "🟠":   "#FFBD45",
-    "🔵":     "#63CDEB",
-    "🟢":     "#6BCB77",
-    "🟣":   "#A78BFA",
-    "⚫":     "#312E36",
-    "🟤":     "#573129",
+    "Rouge":    "#FF6C6C",
+    "Orange":   "#FFBD45",
+    "Bleu":     "#63CDEB",
+    "Vert":     "#6BCB77",
+    "Violet":   "#A78BFA",
+    "Rose":     "#F472B6",
+    "Gris":     "#94A3B8",
 }
 
-STYLE = """
-<style>
-/* Boutons supprimer → rouge */
-div[data-testid="stButton"] button[kind="secondary"] {
-    background-color: #FF4B4B;
-    color: white;
-    border: none;
-}
-div[data-testid="stButton"] button[kind="secondary"]:hover {
-    background-color: #cc0000;
-    color: white;
-}
-/* Boutons primary → vert */
-div[data-testid="stButton"] button[kind="primary"] {
-    background-color: #28a745;
-    color: white;
-    border: none;
-}
-div[data-testid="stButton"] button[kind="primary"]:hover {
-    background-color: #1e7e34;
-    color: white;
-}
-</style>
-"""
 #-------------CALLBACKS----------------------
 
 def garder_expander_ouvert(key_expander):
@@ -114,17 +90,44 @@ def crea_proj_tab():
                 )
 
                 # --------------- SOUS TACHES ----------------------
+                TACHES_TYPES = [
+                    "Pré étude", "Etude", "Construction", "Serrurerie",
+                    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
+                ]
                 st.markdown("**Sous-tâches**")
                 sous_taches = projet["sous_taches"]
                 a_supp = None
 
                 for j, st_data in enumerate(sous_taches):
+                    nom_actuel = st_data["tache"]
+                    # Déterminer si le nom actuel est une tâche type ou "Autre"
+                    if nom_actuel in TACHES_TYPES:
+                        index_type = TACHES_TYPES.index(nom_actuel)
+                    else:
+                        index_type = TACHES_TYPES.index("Autre")
+
                     cols = st.columns([3, 2, 2, 0.6])
                     with cols[0]:
-                        sous_taches[j]["tache"] = st.text_input(
-                            "Nom", value=st_data["tache"],
-                            key=f"tache_{i}_{j}", label_visibility="collapsed"
+                        choix_type = st.selectbox(
+                            "Type",
+                            options=TACHES_TYPES,
+                            index=index_type,
+                            key=f"tache_type_{i}_{j}",
+                            label_visibility="collapsed",
+                            on_change=garder_expander_ouvert,
+                            args=(key_expander,)
                         )
+                        if choix_type == "Autre":
+                            nom_autre = st.text_input(
+                                "Nom personnalisé",
+                                value=nom_actuel if nom_actuel not in TACHES_TYPES else "",
+                                key=f"tache_autre_{i}_{j}",
+                                placeholder="Nom de la tâche...",
+                                label_visibility="collapsed"
+                            )
+                            sous_taches[j]["tache"] = nom_autre if nom_autre.strip() else "Autre"
+                        else:
+                            sous_taches[j]["tache"] = choix_type
                     with cols[1]:
                         sous_taches[j]["start"] = st.date_input(
                             "Début",
@@ -144,7 +147,7 @@ def crea_proj_tab():
                             args=(key_expander,)
                         ).isoformat()
                     with cols[3]:
-                        if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche", type="primary"):
+                        if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):
                             a_supp = j
 
                 if a_supp is not None:
@@ -153,13 +156,13 @@ def crea_proj_tab():
                     st.rerun()
 
                 # ---------------- AJOUT SOUS-TÂCHE -----------------------
-                if st.button("➕ Ajouter une sous-tâche", key=f"add_st_{i}",type="tertiary"):
+                if st.button("➕ Ajouter une sous-tâche", key=f"add_st_{i}"):
                     if sous_taches:
                         last_end = date.fromisoformat(sous_taches[-1]["end"])
                     else:
                         last_end = date.today()
                     sous_taches.append({
-                        "tache": "Nouvelle tâche",
+                        "tache": "Pré étude",
                         "start": last_end.isoformat(),
                         "end": (last_end + timedelta(weeks=2)).isoformat(),
                     })
@@ -169,7 +172,7 @@ def crea_proj_tab():
                 # -------------- BOUTONS --------------------------
                 col_save, col_del = st.columns([1, 1])
                 with col_save:
-                    if st.button("✅ Enregistrer les modifications", key=f"save_{i}",type="secondary"):
+                    if st.button("✅ Enregistrer les modifications", key=f"save_{i}"):
                         projets[i]["projet"] = new_proj
                         projets[i]["couleur"] = new_color
                         projets[i]["sous_taches"] = sous_taches
@@ -245,4 +248,3 @@ def crea_proj_tab():
             st.session_state.projets_sha = nouveau_sha
             st.session_state.msg_succes = f"Projet « {nom_new.strip()} » créé et sauvegardé ! Dépliez-le ci-dessus pour ajouter des sous-tâches et choisir sa couleur."
             st.rerun()
-

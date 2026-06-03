@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from streamlit_calendar import calendar
 from datetime import date, timedelta
 from donnees import Options_cal, build_absences_cal, sauvegarder_ressources_github
@@ -271,8 +272,10 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     <script>
     setTimeout(function() {{
         var el = document.getElementById("{gantt_id}");
-        if (el) {{ el.scrollLeft = {scroll_px}; }}
-    }}, 100);
+        if (el) {{
+            el.scrollLeft = {scroll_px};
+        }}
+    }}, 300);
     </script>
     """
 
@@ -311,10 +314,8 @@ def calendrier_tab():
 
         st.markdown("#### Vue d'ensemble")
         if projets:
-            st.markdown(
-                gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global"),
-                unsafe_allow_html=True
-            )
+            html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global")
+            components.html(html_global, height=max(300, 60 + sum(len(p["sous_taches"]) for p in projets) * 50), scrolling=False)
         else:
             st.info("Aucun projet à afficher.")
 
@@ -335,10 +336,9 @@ def calendrier_tab():
                 ]
                 d_debut = min(min(dates_proj), today) - timedelta(days=7)
                 d_fin = max(dates_proj) + timedelta(days=7)
-                st.markdown(
-                    gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail"),
-                    unsafe_allow_html=True
-                )
+                html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail")
+                nb_st = len(projet_data["sous_taches"])
+                components.html(html_detail, height=max(200, 60 + nb_st * 50), scrolling=False)
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
 

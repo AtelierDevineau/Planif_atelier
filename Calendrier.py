@@ -14,7 +14,7 @@ COULEURS_PALETTE = {
 }
 
 TACHES_TYPES = [
-    "Pré étude", "Etude", "Construction", "Serrurerie"a,
+    "Pré étude", "Etude", "Construction", "Serrurerie",
     "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
 ]
 

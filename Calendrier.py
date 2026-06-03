@@ -32,16 +32,14 @@ def get_noms_assignes(nom_projet, nom_tache, data_proj):
 # CONSTRUCTION DU GANTT TABLEAU
 # -------------------------------------------------------
 
-def gantt_tableau(projets_data, nb_semaines, data_proj):
+def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, gantt_id="gantt"):
     """
-    Gantt en tableau HTML.
-    - Une colonne séparateur grise de 3px entre chaque semaine (pas de bordure CSS)
-    - 2 lignes par sous-tâche : couleur pleine (nom) + couleur ~60% (ressources)
-    - Cellules fusionnées sur la durée de la tâche
+    Gantt en tableau HTML sur toute la période du planning.
+    - Scroll horizontal : aujourd'hui est visible au chargement
+    - Séparateurs de semaine en colonne grise
+    - 2 lignes par sous-tâche
     """
     today = date.today()
-    date_debut_grille = today
-    date_fin_grille = today + timedelta(weeks=nb_semaines)
 
     jours = get_jours(date_debut_grille, date_fin_grille)
     lundis = get_lundis(date_debut_grille, date_fin_grille)
@@ -247,15 +245,35 @@ def gantt_tableau(projets_data, nb_semaines, data_proj):
 
             rows += row1 + row2
 
+    # Calculer le scroll initial : position d'aujourd'hui dans la grille
+    if today >= date_debut_grille:
+        jours_avant_today = (today - date_debut_grille).days
+        # Compter les séparateurs avant today
+        seps_avant = sum(
+            1 for j in jours
+            if j <= today and j.weekday() == 0 and j != date_debut_grille
+        )
+        scroll_px = jours_avant_today * 14 + seps_avant * 3
+        # Décaler un peu pour voir quelques jours avant
+        scroll_px = max(0, scroll_px - 50)
+    else:
+        scroll_px = 0
+
     return f"""
     {css}
-    <div class="gantt-wrap">
+    <div class="gantt-wrap" id="{gantt_id}">
     <table class="gantt-table">
         {colgroup}
         <thead>{header}</thead>
         <tbody>{rows}</tbody>
     </table>
     </div>
+    <script>
+    (function() {{
+        var el = document.getElementById("{gantt_id}");
+        if (el) {{ el.scrollLeft = {scroll_px}; }}
+    }})();
+    </script>
     """
 
 
@@ -273,20 +291,30 @@ def calendrier_tab():
     )
 
     if selection == "Projets":
-        options_semaines = {"4 semaines": 4, "8 semaines": 8, "12 semaines": 12}
-        choix_semaines = st.segmented_control(
-            "Fenêtre d'affichage :",
-            options=list(options_semaines.keys()),
-            selection_mode="single",
-            default="8 semaines"
-        )
-        nb_semaines = options_semaines.get(choix_semaines, 8)
         projets = st.session_state.Projets_gantt
         data_proj = st.session_state.Data_proj
 
+        # Calculer la plage de dates depuis toutes les sous-tâches
+        toutes_dates = [
+            date.fromisoformat(st_data[cle])
+            for p in projets
+            for st_data in p.get("sous_taches", [])
+            for cle in ("start", "end")
+        ]
+        today = date.today()
+        if toutes_dates:
+            date_debut_grille = min(min(toutes_dates), today) - timedelta(days=7)
+            date_fin_grille = max(toutes_dates) + timedelta(days=7)
+        else:
+            date_debut_grille = today - timedelta(days=7)
+            date_fin_grille = today + timedelta(weeks=12)
+
         st.markdown("#### Vue d'ensemble")
         if projets:
-            st.markdown(gantt_tableau(projets, nb_semaines, data_proj), unsafe_allow_html=True)
+            st.markdown(
+                gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global"),
+                unsafe_allow_html=True
+            )
         else:
             st.info("Aucun projet à afficher.")
 
@@ -300,7 +328,17 @@ def calendrier_tab():
             )
             projet_data = next(p for p in projets if p["projet"] == projet_choisi)
             if projet_data["sous_taches"]:
-                st.markdown(gantt_tableau([projet_data], nb_semaines, data_proj), unsafe_allow_html=True)
+                dates_proj = [
+                    date.fromisoformat(st_data[cle])
+                    for st_data in projet_data["sous_taches"]
+                    for cle in ("start", "end")
+                ]
+                d_debut = min(min(dates_proj), today) - timedelta(days=7)
+                d_fin = max(dates_proj) + timedelta(days=7)
+                st.markdown(
+                    gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail"),
+                    unsafe_allow_html=True
+                )
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
 

@@ -21,6 +21,15 @@
                     "Pct": 46
                 }
             ]
+        },
+        "Pré étude": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Mickey Mouse",
+                    "Pct": 2
+                }
+            ]
         }
     },
     "Manon Lescaut": {

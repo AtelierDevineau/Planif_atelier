@@ -28,11 +28,138 @@ def _build_export_df(projets_data, data_proj):
             })
     return pd.DataFrame(rows)
 
-def _to_excel(df):
-    """Convertit un DataFrame en bytes Excel."""
+def _to_excel_gantt(projets_data, data_proj):
+    """
+    Génère un fichier Excel avec un Gantt coloré par cellules.
+    - Colonnes = semaines (en-tête lundi JJ/MM) subdivisées en jours
+    - Lignes = sous-tâches (2 lignes : nom projet + ressources)
+    - Cellules colorées selon le type de sous-tâche
+    """
+    from openpyxl import Workbook
+    from openpyxl.styles import PatternFill, Font, Alignment, Border, Side, numbers
+    from openpyxl.utils import get_column_letter
+
+    # Calculer la plage de dates
+    toutes_dates = [
+        date.fromisoformat(st_data[cle])
+        for p in projets_data
+        for st_data in p.get("sous_taches", [])
+        for cle in ("start", "end")
+    ]
+    if not toutes_dates:
+        return io.BytesIO().getvalue()
+
+    today = date.today()
+    date_debut = min(min(toutes_dates), today) - timedelta(days=7)
+    date_fin = max(toutes_dates) + timedelta(days=7)
+    jours = []
+    cur = date_debut
+    while cur <= date_fin:
+        jours.append(cur)
+        cur += timedelta(days=1)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Gantt"
+
+    # ── En-tête : une colonne label + une colonne par jour ──────────────────
+    LABEL_COL = 1
+    JOUR_START_COL = 2
+
+    # Colonne label
+    ws.column_dimensions[get_column_letter(LABEL_COL)].width = 22
+
+    # En-têtes semaines (ligne 1) et jours (ligne 2)
+    lundi_courant = None
+    for idx, jour in enumerate(jours):
+        col = JOUR_START_COL + idx
+        ws.column_dimensions[get_column_letter(col)].width = 3.5
+
+        # Ligne 1 : label semaine sur le lundi
+        if jour.weekday() == 0:
+            lundi_courant = col
+            cell_sem = ws.cell(row=1, column=col)
+            cell_sem.value = f"Lun. {jour.day}/{jour.month}"
+            cell_sem.font = Font(bold=True, size=8)
+            cell_sem.alignment = Alignment(horizontal="left")
+            cell_sem.fill = PatternFill("solid", fgColor="F5F5F5")
+
+        # Ligne 2 : numéro du jour
+        cell_j = ws.cell(row=2, column=col)
+        cell_j.value = jour.day
+        cell_j.font = Font(size=7)
+        cell_j.alignment = Alignment(horizontal="center")
+        if jour == today:
+            cell_j.fill = PatternFill("solid", fgColor="FFFACD")
+
+    ws.row_dimensions[1].height = 18
+    ws.row_dimensions[2].height = 14
+
+    # ── Lignes de données ────────────────────────────────────────────────────
+    row = 3
+    for type_tache in ORDRE_TACHES:
+        couleur_hex = COULEURS_TACHES.get(type_tache, "#A0A0A0").lstrip("#")
+        couleur_sub = couleur_hex + "99"  # opacité simulée en Excel n'existe pas,
+        # on utilise une version plus claire
+        r = int(couleur_hex[0:2], 16)
+        g = int(couleur_hex[2:4], 16)
+        b = int(couleur_hex[4:6], 16)
+        # Version claire pour la ligne ressources (mélange avec blanc)
+        r2 = min(255, r + (255 - r) // 2)
+        g2 = min(255, g + (255 - g) // 2)
+        b2 = min(255, b + (255 - b) // 2)
+        couleur_claire = f"{r2:02X}{g2:02X}{b2:02X}"
+
+        for projet in projets_data:
+            nom_projet = projet["projet"]
+            for sous_tache in projet["sous_taches"]:
+                nom_tache = sous_tache["tache"]
+                if (nom_tache if nom_tache in ORDRE_TACHES else "Autre") != type_tache:
+                    continue
+
+                debut_st = date.fromisoformat(sous_tache["start"])
+                fin_st = date.fromisoformat(sous_tache["end"])
+                noms = [a["Nom"] for a in data_proj.get(nom_projet, {}).get(nom_tache, {}).get("Assignations", [])]
+                noms_str = ", ".join(noms)
+
+                # Ligne 1 : nom projet
+                ws.cell(row=row, column=LABEL_COL).value = nom_projet
+                ws.cell(row=row, column=LABEL_COL).font = Font(bold=True, size=8)
+                ws.row_dimensions[row].height = 16
+
+                # Ligne 2 : ressources
+                ws.cell(row=row+1, column=LABEL_COL).value = noms_str
+                ws.cell(row=row+1, column=LABEL_COL).font = Font(size=7, italic=True)
+                ws.row_dimensions[row+1].height = 13
+
+                # Colorier les cellules des jours concernés
+                for idx, jour in enumerate(jours):
+                    col = JOUR_START_COL + idx
+                    if debut_st <= jour < fin_st:
+                        ws.cell(row=row, column=col).fill = PatternFill("solid", fgColor=couleur_hex)
+                        ws.cell(row=row+1, column=col).fill = PatternFill("solid", fgColor=couleur_claire)
+                    elif jour == today:
+                        ws.cell(row=row, column=col).fill = PatternFill("solid", fgColor="FFFACD")
+                        ws.cell(row=row+1, column=col).fill = PatternFill("solid", fgColor="FFFACD")
+
+                row += 2
+
+        # Ligne de séparation entre types de tâches
+        if any(
+            (st["tache"] if st["tache"] in ORDRE_TACHES else "Autre") == type_tache
+            for p in projets_data for st in p.get("sous_taches", [])
+        ):
+            for col_idx in range(len(jours) + 1):
+                ws.cell(row=row, column=LABEL_COL + col_idx).border = Border(
+                    bottom=Side(style="thin", color="CCCCCC")
+                )
+            row += 1
+
+    # Figer la première colonne et les deux premières lignes
+    ws.freeze_panes = "B3"
+
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Gantt")
+    wb.save(output)
     return output.getvalue()
 
 # -------------------------------------------------------
@@ -419,12 +546,11 @@ def calendrier_tab():
             st.markdown(html_global, unsafe_allow_html=True)
 
             # Export vue globale
-            df_global = _build_export_df(projets, data_proj)
             col_csv, col_xl, _ = st.columns([1, 1, 6])
             with col_csv:
                 st.download_button(
                     "⬇ CSV",
-                    data=df_global.to_csv(index=False, encoding="utf-8-sig"),
+                    data=_build_export_df(projets, data_proj).to_csv(index=False, encoding="utf-8-sig"),
                     file_name="gantt_global.csv",
                     mime="text/csv",
                     key="dl_csv_global"
@@ -432,7 +558,7 @@ def calendrier_tab():
             with col_xl:
                 st.download_button(
                     "⬇ Excel",
-                    data=_to_excel(df_global),
+                    data=_to_excel_gantt(projets, data_proj),
                     file_name="gantt_global.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key="dl_xl_global"
@@ -471,12 +597,11 @@ def calendrier_tab():
                 st.markdown(html_detail, unsafe_allow_html=True)
 
                 # Export vue détaillée
-                df_detail = _build_export_df([projet_data], data_proj)
                 col_csv2, col_xl2, _ = st.columns([1, 1, 6])
                 with col_csv2:
                     st.download_button(
                         "⬇ CSV",
-                        data=df_detail.to_csv(index=False, encoding="utf-8-sig"),
+                        data=_build_export_df([projet_data], data_proj).to_csv(index=False, encoding="utf-8-sig"),
                         file_name=f"gantt_{projet_choisi}.csv",
                         mime="text/csv",
                         key="dl_csv_detail"
@@ -484,7 +609,7 @@ def calendrier_tab():
                 with col_xl2:
                     st.download_button(
                         "⬇ Excel",
-                        data=_to_excel(df_detail),
+                        data=_to_excel_gantt([projet_data], data_proj),
                         file_name=f"gantt_{projet_choisi}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         key="dl_xl_detail"

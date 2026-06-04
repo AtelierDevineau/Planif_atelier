@@ -400,32 +400,6 @@ def calendrier_tab():
             st.session_state["choix_sous_tache"] = nom_tache_clic
             st.switch_page("pages/04_Assignation.py")
 
-        # --- Boutons d'accès rapide à l'Assignation ---
-        if projets:
-            st.markdown("#### Ouvrir dans Assignation")
-            for projet in projets:
-                nom_projet = projet["projet"]
-                sous_taches = projet.get("sous_taches", [])
-                if not sous_taches:
-                    continue
-                st.markdown(f"**{nom_projet}**")
-                cols = st.columns(len(sous_taches))
-                for k, st_data in enumerate(sous_taches):
-                    nom_tache = st_data["tache"]
-                    couleur = COULEURS_TACHES.get(nom_tache, COULEURS_TACHES["Autre"])
-                    with cols[k]:
-                        # Badge coloré avec le nom de la tâche
-                        st.markdown(
-                            f'<div style="background:{couleur};border-radius:4px;'
-                            f'padding:2px 6px;font-size:0.8em;color:white;'
-                            f'text-align:center;margin-bottom:4px;">{nom_tache}</div>',
-                            unsafe_allow_html=True
-                        )
-                        if st.button("→", key=f"nav_{nom_projet}_{nom_tache}", help=f"{nom_projet} — {nom_tache}"):
-                            st.session_state["choix_projet"] = nom_projet
-                            st.session_state["choix_sous_tache"] = nom_tache
-                            st.switch_page("pages/04_Assignation.py")
-
         st.markdown("#### Vue détaillée")
         if projets:
             noms_projets = [p["projet"] for p in projets]

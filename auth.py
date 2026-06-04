@@ -2,18 +2,16 @@ import streamlit as st
 from streamlit_cookies_controller import CookieController
 
 def verifier_auth():
-    """
-    Vérifie l'authentification via session_state ou cookie.
-    Arrête la page si non authentifié.
-    """
+    if "authentifie" not in st.session_state:
+        st.session_state.authentifie = False
+
     controller = CookieController()
 
-    if not st.session_state.get("authentifie"):
+    if not st.session_state.authentifie:
         cookie_auth = controller.get("atelier_auth")
         if cookie_auth == "true":
             st.session_state.authentifie = True
         elif cookie_auth is None:
-            # Premier rendu — cookie pas encore disponible, on laisse passer
             pass
         else:
             st.warning("Veuillez vous connecter depuis la page d'accueil.")

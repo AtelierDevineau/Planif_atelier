@@ -48,6 +48,11 @@
                 "tache": "Etude",
                 "start": "2026-01-09",
                 "end": "2026-05-15"
+            },
+            {
+                "tache": "Serrurerie",
+                "start": "2026-06-09",
+                "end": "2026-06-11"
             }
         ],
         "client": "Opéra comique",

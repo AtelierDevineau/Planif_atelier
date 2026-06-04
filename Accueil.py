@@ -14,15 +14,16 @@ st.set_page_config(
 inject_style()
 
 # ── Authentification via cookie ───────────────────────────────────────────────
+if "authentifie" not in st.session_state:
+    st.session_state.authentifie = False
+
 controller = CookieController()
 
-if not st.session_state.get("authentifie"):
+if not st.session_state.authentifie:
     cookie_auth = controller.get("atelier_auth")
     if cookie_auth == "true":
         st.session_state.authentifie = True
     elif cookie_auth is None:
-        # Premier rendu — le composant cookie n'est pas encore prêt
-        # On laisse la page se rendre silencieusement
         pass
     else:
         st.session_state.authentifie = False

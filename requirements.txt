@@ -2,3 +2,4 @@ streamlit
 streamlit-calendar
 plotly
 streamlit-cookies-controller
+openpyxl

@@ -272,6 +272,7 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                         f'<td colspan="{colspan_barre}" class="{cls_texte}" '
                         f'style="background:{couleur};">'
                         f'<a href="?gantt_projet={proj_enc}&gantt_tache={tache_enc}" '
+                        f'target="_self" '
                         f'style="color:inherit;text-decoration:none;display:block;width:100%;height:100%;'
                         f'text-align:center;line-height:24px;">{nom_projet}</a>'
                         f'</td>'

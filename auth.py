@@ -13,8 +13,8 @@ def verifier_auth():
         if cookie_auth == "true":
             st.session_state.authentifie = True
         elif cookie_auth is None:
-            # Cookie pas encore lu — attendre le prochain rendu
-            st.stop()
+            # Premier rendu — cookie pas encore disponible, on laisse passer
+            pass
         else:
             st.warning("Veuillez vous connecter depuis la page d'accueil.")
             st.stop()

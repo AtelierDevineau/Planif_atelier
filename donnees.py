@@ -16,7 +16,6 @@ def _headers():
     }
 
 def _charger_fichier(nom_fichier):
-    """Lit un fichier JSON depuis le repo GitHub. Retourne (données, sha)."""
     response = requests.get(f"{GITHUB_API_BASE}/{nom_fichier}", headers=_headers())
     if response.status_code == 200:
         data = response.json()
@@ -27,7 +26,6 @@ def _charger_fichier(nom_fichier):
         return None, None
 
 def _sauvegarder_fichier(nom_fichier, donnees, sha):
-    """Écrit un fichier JSON sur GitHub. Retourne le nouveau sha."""
     contenu_encode = base64.b64encode(
         json.dumps(donnees, ensure_ascii=False, indent=4).encode("utf-8")
     ).decode("utf-8")
@@ -45,21 +43,18 @@ def _sauvegarder_fichier(nom_fichier, donnees, sha):
         st.error(f"Erreur de sauvegarde GitHub ({response.status_code}) pour {nom_fichier}")
         return sha
 
-# Fonctions publiques projets
 def charger_projets_github():
     return _charger_fichier("projets.json")
 
 def sauvegarder_projets_github(projets, sha):
     return _sauvegarder_fichier("projets.json", projets, sha)
 
-# Fonctions publiques ressources
 def charger_ressources_github():
     return _charger_fichier("ressources.json")
 
 def sauvegarder_ressources_github(ressources, sha):
     return _sauvegarder_fichier("ressources.json", ressources, sha)
 
-# Fonctions publiques assignations
 def charger_assignations_github():
     return _charger_fichier("assignations.json")
 
@@ -68,18 +63,38 @@ def sauvegarder_assignations_github(assignations, sha):
 
 
 #---------POSTES---------------------------------------------------------------------------------
-# Dictionnaire poste -> couleur (utilisé dans Crea_ress et Calendrier)
 POSTES = {
     "BE":             "#4E9AF1",  # bleu
     "Serrurerie":     "#F1874E",  # orange
     "Construction":   "#A0C45A",  # vert olive
     "Usinage":        "#A64EF1",  # violet
-    "Déco":           "#F1C84E",  # jaune
+    "Peinture":       "#F1C84E",  # jaune
+    "Sculpture":      "#2E8B57",  # vert foncé
     "Administration": "#4EF1C8",  # turquoise
-    "Tapisserie" :    "#0218C7",  #Bleu marine
     "Régisseur":      "#F14E7A",  # rose
+    "Tapisserie":     "#E07B54",  # terre cuite
     "Autres":         "#A0A0A0",  # gris
 }
+
+# Correspondance type de sous-tâche → couleur dans le Gantt
+COULEURS_TACHES = {
+    "Pré étude":    "#7EB8F7",  # bleu clair (BE clair)
+    "Etude":        "#4E9AF1",  # bleu (BE)
+    "Construction": "#A0C45A",  # vert olive (Construction)
+    "Serrurerie":   "#F1874E",  # orange (Serrurerie)
+    "CU":           "#A64EF1",  # violet (Usinage)
+    "Peinture":     "#F1C84E",  # jaune (Peinture)
+    "Sculpture":    "#2E8B57",  # vert foncé (Sculpture)
+    "Tapisserie":   "#E07B54",  # terre cuite (Tapisserie)
+    "Montage":      "#222222",  # noir
+    "Autre":        "#A0A0A0",  # gris
+}
+
+# Ordre d'affichage des types de tâches dans le Gantt
+ORDRE_TACHES = [
+    "Pré étude", "Etude", "Construction", "Serrurerie",
+    "Sculpture", "Tapisserie", "Peinture", "CU", "Montage", "Autre"
+]
 
 
 #---------CALENDRIER---------------------------------------------------------------------------------
@@ -94,44 +109,43 @@ Options_cal = {
     }
 }
 
+#-------PROJETS-----------------------------------------------------------------------------------
+Projets = [
+    {"Nom": "L'enlèvement au sérail", "Client": "TCE"},
+    {"Nom": "Manon Lescaut", "Client": "TCE"},
+    {"Nom": "Brundibar", "Client": "L'opéra Comique"}
+]
+
 #-------INITIALISATION SESSION STATE-----------------------------------------------------------------------------------
 
 def init_session_state():
-    """Initialise les variables de session si elles n'existent pas encore"""
-
-    # Ressources : chargées depuis GitHub
     if "Ressources_base" not in st.session_state:
         ressources, sha = charger_ressources_github()
         st.session_state.Ressources_base = ressources or []
         st.session_state.ressources_sha = sha
 
-    # Ressources avec dispo restante : calculées depuis Ressources_base
     if "Ressources" not in st.session_state:
         st.session_state.Ressources = [
             {"Nom": r["Nom"], "Dispo_restante": r["Dispo_base"]}
             for r in st.session_state.Ressources_base
         ]
 
-    # Assignations : chargées depuis GitHub
     if "Data_proj" not in st.session_state:
         assignations, sha = charger_assignations_github()
         st.session_state.Data_proj = assignations or {}
         st.session_state.assignations_sha = sha
 
-    # Projets Gantt : chargés depuis GitHub
     if "Projets_gantt" not in st.session_state:
         projets, sha = charger_projets_github()
         st.session_state.Projets_gantt = projets or []
         st.session_state.projets_sha = sha
 
-    # Message de succès persisté entre reruns
     if "msg_succes" not in st.session_state:
         st.session_state.msg_succes = None
 
 
 #------RECUPERER COULEUR PROJET--------------------------------------------------
 def get_couleur_projet(nom_projet):
-    """Retourne la couleur hex d'un projet depuis le session_state, gris par défaut"""
     for p in st.session_state.Projets_gantt:
         if p["projet"] == nom_projet:
             return p["couleur"]
@@ -140,13 +154,17 @@ def get_couleur_projet(nom_projet):
 
 #------RECUPERER COULEUR POSTE--------------------------------------------------
 def get_couleur_poste(poste):
-    """Retourne la couleur hex d'un poste, gris par défaut"""
     return POSTES.get(poste, "#A0A0A0")
 
 
-#------CONSTRUIRE ABSENCES_CAL DEPUIS RESSOURCES_BASE---------------------------
+#------RECUPERER COULEUR TACHE--------------------------------------------------
+def get_couleur_tache(nom_tache):
+    """Retourne la couleur d'une sous-tâche selon son type."""
+    return COULEURS_TACHES.get(nom_tache, COULEURS_TACHES["Autre"])
+
+
+#------CONSTRUIRE ABSENCES_CAL--------------------------------------------------
 def build_absences_cal():
-    """Construit la liste d'événements calendrier depuis les absences dans Ressources_base"""
     events = []
     for r in st.session_state.Ressources_base:
         couleur = get_couleur_poste(r.get("Poste", "Autres"))

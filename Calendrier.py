@@ -265,15 +265,16 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                     row1 += '<td class="gc-sep"></td>'
                     ci += 1
                 elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
-                    import json as _json
                     import urllib.parse as _ul
                     proj_enc = _ul.quote(nom_projet)
                     tache_enc = _ul.quote(nom_tache)
                     row1 += (
                         f'<td colspan="{colspan_barre}" class="{cls_texte}" '
-                        f'style="background:{couleur};cursor:pointer;" '
-                        f'onclick="window.location.href = window.location.pathname + \'?gantt_projet={proj_enc}&gantt_tache={tache_enc}\'">'
-                        f'{nom_projet}</td>'
+                        f'style="background:{couleur};">'
+                        f'<a href="?gantt_projet={proj_enc}&gantt_tache={tache_enc}" '
+                        f'style="color:inherit;text-decoration:none;display:block;width:100%;height:100%;'
+                        f'text-align:center;line-height:24px;">{nom_projet}</a>'
+                        f'</td>'
                     )
                     ci += colspan_barre
                 else:

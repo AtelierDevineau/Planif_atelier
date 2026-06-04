@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 from streamlit_calendar import calendar
 from datetime import date, timedelta
 from donnees import Options_cal, build_absences_cal, sauvegarder_ressources_github
+from donnees import COULEURS_TACHES, ORDRE_TACHES, get_couleur_tache
 
 # -------------------------------------------------------
 # UTILITAIRES
@@ -34,12 +35,6 @@ def get_noms_assignes(nom_projet, nom_tache, data_proj):
 # -------------------------------------------------------
 
 def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, gantt_id="gantt", font_face=""):
-    """
-    Gantt en tableau HTML sur toute la période du planning.
-    - Scroll horizontal : aujourd'hui est visible au chargement
-    - Séparateurs de semaine en colonne grise
-    - 2 lignes par sous-tâche
-    """
     today = date.today()
 
     jours = get_jours(date_debut_grille, date_fin_grille)
@@ -47,24 +42,39 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     nb_jours = len(jours)
     jour_index = {j: i for i, j in enumerate(jours)}
 
-    # On construit une liste de "colonnes" : soit un jour, soit un séparateur
-    # Chaque élément : {"type": "jour", "jour": date} ou {"type": "sep"}
+    # Colonnes avec séparateurs de semaine
     colonnes = []
     for jour in jours:
-        if jour.weekday() == 0 and jour != jours[0]:  # lundi sauf le premier
+        if jour.weekday() == 0 and jour != jours[0]:
             colonnes.append({"type": "sep"})
         colonnes.append({"type": "jour", "jour": jour})
 
-    # Reconstruire l'index colonne → index dans colonnes (pour les jours uniquement)
-    col_index = {}  # jour → index dans colonnes
+    col_index = {}
     for i, col in enumerate(colonnes):
         if col["type"] == "jour":
             col_index[col["jour"]] = i
 
     nb_cols = len(colonnes)
-
     nb_seps = sum(1 for c in colonnes if c["type"] == "sep")
     largeur_totale = nb_jours * 14 + nb_seps * 3
+
+    # Regrouper toutes les sous-tâches par type
+    # Structure : {type_tache: [(nom_projet, sous_tache_data), ...]}
+    taches_par_type = {t: [] for t in ORDRE_TACHES}
+    for projet in projets_data:
+        nom_projet = projet["projet"]
+        for sous_tache in projet["sous_taches"]:
+            nom_tache = sous_tache["tache"]
+            type_tache = nom_tache if nom_tache in ORDRE_TACHES else "Autre"
+            taches_par_type[type_tache].append((nom_projet, sous_tache))
+
+    # Scroll vers aujourd'hui
+    if today >= date_debut_grille:
+        jours_avant = (today - date_debut_grille).days
+        seps_avant = sum(1 for j in jours if j <= today and j.weekday() == 0 and j != date_debut_grille)
+        scroll_px = max(0, jours_avant * 14 + seps_avant * 3)
+    else:
+        scroll_px = 0
 
     css = f"""
     <style>
@@ -128,6 +138,19 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
         text-align: center;
         font-weight: bold;
         font-size: 0.85em;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: none;
+    }}
+    .gb1-dark {{
+        padding: 0 8px;
+        height: 24px;
+        vertical-align: middle;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.85em;
         color: #222;
         white-space: nowrap;
         overflow: hidden;
@@ -159,15 +182,6 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     </style>
     """
 
-    # ── COLGROUP : largeurs fixes ─────────────────────────────────────────────
-    colgroup = '<colgroup>'
-    for col in colonnes:
-        if col["type"] == "sep":
-            colgroup += '<col style="width:3px;min-width:3px;max-width:3px;">'
-        else:
-            colgroup += '<col style="width:14px;min-width:14px;">'
-    colgroup += '</colgroup>'
-
     # ── HEADER ───────────────────────────────────────────────────────────────
     header = '<tr>'
     for lundi in lundis:
@@ -180,21 +194,37 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
         header += f'<th colspan="{len(jours_sem)}" class="gh">{label}</th>'
     header += '</tr>'
 
+    # ── COLGROUP ─────────────────────────────────────────────────────────────
+    colgroup = '<colgroup>'
+    for col in colonnes:
+        if col["type"] == "sep":
+            colgroup += '<col style="width:3px;min-width:3px;max-width:3px;">'
+        else:
+            colgroup += '<col style="width:14px;min-width:14px;">'
+    colgroup += '</colgroup>'
+
     # ── LIGNES ───────────────────────────────────────────────────────────────
     rows = ""
 
-    for projet in projets_data:
-        nom_projet = projet["projet"]
-        couleur = projet["couleur"]
+    for type_idx, type_tache in enumerate(ORDRE_TACHES):
+        taches = taches_par_type.get(type_tache, [])
+        if not taches:
+            continue
+
+        couleur = COULEURS_TACHES.get(type_tache, "#A0A0A0")
+        # Texte blanc sur couleurs sombres, noir sur claires
+        couleurs_claires = {"#F1C84E", "#7EB8F7", "#A0C45A"}
+        cls_texte = "gb1-dark" if couleur in couleurs_claires else "gb1"
         couleur_sub = couleur + "99"
 
-        for st_idx, sous_tache in enumerate(projet["sous_taches"]):
-            nom_st = sous_tache["tache"]
+        for st_idx, (nom_projet, sous_tache) in enumerate(taches):
+            nom_tache = sous_tache["tache"]
             debut_st = date.fromisoformat(sous_tache["start"])
             fin_st = date.fromisoformat(sous_tache["end"])
-            noms = get_noms_assignes(nom_projet, nom_st, data_proj)
+            noms = get_noms_assignes(nom_projet, nom_tache, data_proj)
             noms_str = ", ".join(noms)
-            is_last = st_idx == len(projet["sous_taches"]) - 1
+
+            is_last = st_idx == len(taches) - 1
 
             debut_visible = max(debut_st, date_debut_grille)
             fin_visible = min(fin_st, date_fin_grille)
@@ -203,14 +233,12 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
             if dans_fenetre:
                 ci_debut = col_index.get(debut_visible, 0)
                 ci_fin = col_index.get(fin_visible, nb_cols)
-                # colspan = nombre de colonnes entre ci_debut et ci_fin
-                # (inclut les séparateurs éventuels à l'intérieur)
                 colspan_barre = ci_fin - ci_debut
             else:
                 ci_debut = None
                 colspan_barre = 0
 
-            # ── Ligne 1 ──
+            # Ligne 1 : nom du projet dans la barre
             row1 = '<tr>'
             ci = 0
             while ci < nb_cols:
@@ -220,8 +248,8 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                     ci += 1
                 elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
                     row1 += (
-                        f'<td colspan="{colspan_barre}" class="gb1" '
-                        f'style="background:{couleur};">{nom_st}</td>'
+                        f'<td colspan="{colspan_barre}" class="{cls_texte}" '
+                        f'style="background:{couleur};">{nom_projet}</td>'
                     )
                     ci += colspan_barre
                 else:
@@ -229,7 +257,7 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                     ci += 1
             row1 += '</tr>'
 
-            # ── Ligne 2 ──
+            # Ligne 2 : noms des ressources
             sep_cls = ' class="gsep"' if is_last else ''
             row2 = f'<tr{sep_cls}>'
             ci = 0
@@ -251,20 +279,19 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
 
             rows += row1 + row2
 
-    # Calculer le scroll initial : position d'aujourd'hui dans la grille
-    if today >= date_debut_grille:
-        jours_avant_today = (today - date_debut_grille).days
-        # Compter les séparateurs avant today
-        seps_avant = sum(
-            1 for j in jours
-            if j <= today and j.weekday() == 0 and j != date_debut_grille
+    # ── LEGENDE ──────────────────────────────────────────────────────────────
+    types_presents = [t for t in ORDRE_TACHES if taches_par_type.get(t)]
+    legende_html = '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;">'
+    for t in types_presents:
+        c = COULEURS_TACHES.get(t, "#A0A0A0")
+        legende_html += (
+            f'<span style="display:flex;align-items:center;gap:6px;font-size:0.85em;">'
+            f'<span style="display:inline-block;width:16px;height:16px;'
+            f'background:{c};border-radius:3px;"></span>{t}</span>'
         )
-        scroll_px = jours_avant_today * 14 + seps_avant * 3
-        scroll_px = max(0, scroll_px)
-    else:
-        scroll_px = 0
+    legende_html += '</div>'
 
-    return f"""
+    html = f"""
     {css}
     <div class="gantt-wrap" id="{gantt_id}">
     <table class="gantt-table">
@@ -273,15 +300,15 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
         <tbody>{rows}</tbody>
     </table>
     </div>
+    {legende_html}
     <script>
     setTimeout(function() {{
         var el = document.getElementById("{gantt_id}");
-        if (el) {{
-            el.scrollLeft = {scroll_px};
-        }}
+        if (el) {{ el.scrollLeft = {scroll_px}; }}
     }}, 300);
     </script>
     """
+    return html
 
 
 # -------------------------------------------------------
@@ -301,7 +328,7 @@ def calendrier_tab():
         projets = st.session_state.Projets_gantt
         data_proj = st.session_state.Data_proj
 
-        # Charger la police GT Walsheim pour l'iframe
+        # Charger la police GT Walsheim
         import base64 as _b64, os as _os
         font_face = ""
         font_path = _os.path.join(_os.path.dirname(__file__), "fonts", "GT-Walsheim-Regular.ttf")
@@ -312,14 +339,12 @@ def calendrier_tab():
             @font-face {{
                 font-family: 'GTWalsheim';
                 src: url(data:font/truetype;base64,{font_b64}) format('truetype');
-                font-weight: normal;
-                font-style: normal;
             }}
             """
         except FileNotFoundError:
             pass
 
-        # Calculer la plage de dates depuis toutes les sous-tâches
+        # Plage de dates
         toutes_dates = [
             date.fromisoformat(st_data[cle])
             for p in projets
@@ -337,7 +362,8 @@ def calendrier_tab():
         st.markdown("#### Vue d'ensemble")
         if projets:
             html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
-            components.html(html_global, height=max(300, 60 + sum(len(p["sous_taches"]) for p in projets) * 50), scrolling=False)
+            nb_lignes = sum(len(p.get("sous_taches", [])) for p in projets)
+            components.html(html_global, height=max(300, 80 + nb_lignes * 50), scrolling=False)
         else:
             st.info("Aucun projet à afficher.")
 
@@ -360,7 +386,7 @@ def calendrier_tab():
                 d_fin = max(dates_proj) + timedelta(days=7)
                 html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail", font_face)
                 nb_st = len(projet_data["sous_taches"])
-                components.html(html_detail, height=max(200, 60 + nb_st * 50), scrolling=False)
+                components.html(html_detail, height=max(200, 80 + nb_st * 50), scrolling=False)
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
 

@@ -4,6 +4,36 @@ from streamlit_calendar import calendar
 from datetime import date, timedelta
 from donnees import Options_cal, build_absences_cal, sauvegarder_ressources_github
 from donnees import COULEURS_TACHES, ORDRE_TACHES, get_couleur_tache
+import pandas as pd
+import io
+
+# -------------------------------------------------------
+# FONCTIONS D'EXPORT
+# -------------------------------------------------------
+
+def _build_export_df(projets_data, data_proj):
+    """Construit un DataFrame avec toutes les sous-tâches pour export."""
+    rows = []
+    for projet in projets_data:
+        nom_projet = projet["projet"]
+        for sous_tache in projet["sous_taches"]:
+            nom_tache = sous_tache["tache"]
+            noms = [a["Nom"] for a in data_proj.get(nom_projet, {}).get(nom_tache, {}).get("Assignations", [])]
+            rows.append({
+                "Projet": nom_projet,
+                "Sous-tâche": nom_tache,
+                "Début": sous_tache["start"],
+                "Fin": sous_tache["end"],
+                "Ressources assignées": ", ".join(noms)
+            })
+    return pd.DataFrame(rows)
+
+def _to_excel(df):
+    """Convertit un DataFrame en bytes Excel."""
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Gantt")
+    return output.getvalue()
 
 # -------------------------------------------------------
 # UTILITAIRES
@@ -387,6 +417,26 @@ def calendrier_tab():
         if projets:
             html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
             st.markdown(html_global, unsafe_allow_html=True)
+
+            # Export vue globale
+            df_global = _build_export_df(projets, data_proj)
+            col_csv, col_xl, _ = st.columns([1, 1, 6])
+            with col_csv:
+                st.download_button(
+                    "⬇ CSV",
+                    data=df_global.to_csv(index=False, encoding="utf-8-sig"),
+                    file_name="gantt_global.csv",
+                    mime="text/csv",
+                    key="dl_csv_global"
+                )
+            with col_xl:
+                st.download_button(
+                    "⬇ Excel",
+                    data=_to_excel(df_global),
+                    file_name="gantt_global.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_xl_global"
+                )
         else:
             st.info("Aucun projet à afficher.")
 
@@ -419,6 +469,26 @@ def calendrier_tab():
                 d_fin = max(dates_proj) + timedelta(days=7)
                 html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail", font_face)
                 st.markdown(html_detail, unsafe_allow_html=True)
+
+                # Export vue détaillée
+                df_detail = _build_export_df([projet_data], data_proj)
+                col_csv2, col_xl2, _ = st.columns([1, 1, 6])
+                with col_csv2:
+                    st.download_button(
+                        "⬇ CSV",
+                        data=df_detail.to_csv(index=False, encoding="utf-8-sig"),
+                        file_name=f"gantt_{projet_choisi}.csv",
+                        mime="text/csv",
+                        key="dl_csv_detail"
+                    )
+                with col_xl2:
+                    st.download_button(
+                        "⬇ Excel",
+                        data=_to_excel(df_detail),
+                        file_name=f"gantt_{projet_choisi}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key="dl_xl_detail"
+                    )
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
 

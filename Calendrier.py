@@ -238,7 +238,7 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                 ci_debut = None
                 colspan_barre = 0
 
-            # Ligne 1 : nom du projet dans la barre
+            # Ligne 1 : nom du projet dans la barre — cliquable
             row1 = '<tr>'
             ci = 0
             while ci < nb_cols:
@@ -247,9 +247,15 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                     row1 += '<td class="gc-sep"></td>'
                     ci += 1
                 elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
+                    # Encoder projet et tâche pour l'onclick
+                    import json as _json
+                    payload = _json.dumps({"projet": nom_projet, "tache": nom_tache})
+                    payload_safe = payload.replace("'", "\\'")
                     row1 += (
                         f'<td colspan="{colspan_barre}" class="{cls_texte}" '
-                        f'style="background:{couleur};">{nom_projet}</td>'
+                        f'style="background:{couleur};cursor:pointer;" '
+                        f'onclick="window.parent.postMessage({{type:\'gantt_click\',data:{payload}}},\'*\')">'
+                        f'{nom_projet}</td>'
                     )
                     ci += colspan_barre
                 else:
@@ -364,6 +370,60 @@ def calendrier_tab():
             html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
             nb_lignes = sum(len(p.get("sous_taches", [])) for p in projets)
             components.html(html_global, height=max(300, 80 + nb_lignes * 50), scrolling=False)
+        else:
+            st.info("Aucun projet à afficher.")
+
+        # Composant récepteur des clics sur le Gantt
+        recepteur_html = """
+        <script>
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'gantt_click') {
+                var data = e.data.data;
+                // Stocker dans un input caché pour que Streamlit puisse le lire
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.id = 'gantt_click_data';
+                input.value = JSON.stringify(data);
+                document.body.appendChild(input);
+                // Déclencher un event pour notifier Streamlit
+                window.parent.postMessage({
+                    type: 'streamlit:setComponentValue',
+                    value: JSON.stringify(data)
+                }, '*');
+            }
+        });
+        </script>
+        """
+
+        # Utiliser un vrai composant Streamlit pour recevoir le clic
+        clic_data = components.html(
+            """
+            <script>
+            window.addEventListener('message', function(e) {
+                if (e.data && e.data.type === 'gantt_click') {
+                    window.parent.postMessage({
+                        type: 'streamlit:setComponentValue',
+                        value: JSON.stringify(e.data.data)
+                    }, '*');
+                }
+            });
+            </script>
+            """,
+            height=0
+        )
+
+        if clic_data:
+            import json as _json
+            try:
+                data = _json.loads(clic_data)
+                nom_projet_clic = data.get("projet")
+                nom_tache_clic = data.get("tache")
+                if nom_projet_clic and nom_tache_clic:
+                    st.session_state["choix_projet"] = nom_projet_clic
+                    st.session_state["choix_sous_tache"] = nom_tache_clic
+                    st.switch_page("pages/04_Assignation.py")
+            except Exception:
+                pass
         else:
             st.info("Aucun projet à afficher.")
 

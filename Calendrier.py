@@ -171,6 +171,24 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     .gsep td {{
         border-bottom: 2px solid #ccc !important;
     }}
+    .gc-today {{
+        padding: 0;
+        height: 24px;
+        border-right: 1px solid #f0f0f0;
+        border-top: none;
+        border-bottom: none;
+        border-left: none;
+        background-color: #FFFACD;
+    }}
+    .gc2-today {{
+        padding: 0;
+        height: 20px;
+        border-right: 1px solid #f0f0f0;
+        border-top: none;
+        border-bottom: none;
+        border-left: none;
+        background-color: #FFFACD;
+    }}
     .gc2 {{
         padding: 0;
         height: 20px;
@@ -254,12 +272,14 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                     row1 += (
                         f'<td colspan="{colspan_barre}" class="{cls_texte}" '
                         f'style="background:{couleur};cursor:pointer;" '
-                        f'onclick="window.parent.location.href = window.parent.location.pathname + \'?gantt_projet={proj_enc}&gantt_tache={tache_enc}\'">'
+                        f'onclick="window.location.href = window.location.pathname + \'?gantt_projet={proj_enc}&gantt_tache={tache_enc}\'">'
                         f'{nom_projet}</td>'
                     )
                     ci += colspan_barre
                 else:
-                    row1 += '<td class="gc"></td>'
+                    est_aujourd_hui = colonnes[ci]["type"] == "jour" and colonnes[ci]["jour"] == today
+                    cls = "gc-today" if est_aujourd_hui else "gc"
+                    row1 += f'<td class="{cls}"></td>'
                     ci += 1
             row1 += '</tr>'
 
@@ -279,7 +299,9 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
                     )
                     ci += colspan_barre
                 else:
-                    row2 += '<td class="gc2"></td>'
+                    est_aujourd_hui = col["type"] == "jour" and col["jour"] == today
+                    cls = "gc2-today" if est_aujourd_hui else "gc2"
+                    row2 += f'<td class="{cls}"></td>'
                     ci += 1
             row2 += '</tr>'
 
@@ -307,12 +329,6 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
     </table>
     </div>
     {legende_html}
-    <script>
-    setTimeout(function() {{
-        var el = document.getElementById("{gantt_id}");
-        if (el) {{ el.scrollLeft = {scroll_px}; }}
-    }}, 300);
-    </script>
     """
     return html
 
@@ -368,8 +384,7 @@ def calendrier_tab():
         st.markdown("#### Vue d'ensemble")
         if projets:
             html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
-            nb_lignes = sum(len(p.get("sous_taches", [])) for p in projets)
-            components.html(html_global, height=max(300, 80 + nb_lignes * 50), scrolling=False)
+            st.markdown(html_global, unsafe_allow_html=True)
         else:
             st.info("Aucun projet à afficher.")
 
@@ -403,8 +418,7 @@ def calendrier_tab():
                 d_debut = min(min(dates_proj), today) - timedelta(days=7)
                 d_fin = max(dates_proj) + timedelta(days=7)
                 html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail", font_face)
-                nb_st = len(projet_data["sous_taches"])
-                components.html(html_detail, height=max(200, 80 + nb_st * 50), scrolling=False)
+                st.markdown(html_detail, unsafe_allow_html=True)
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
 

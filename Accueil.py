@@ -16,12 +16,14 @@ inject_style()
 # ── Authentification via cookie ───────────────────────────────────────────────
 controller = CookieController()
 
-# Lire le cookie d'authentification
-cookie_auth = controller.get("atelier_auth")
-
+# Lire le cookie — nécessite parfois un rerun pour être disponible
 if not st.session_state.get("authentifie"):
+    cookie_auth = controller.get("atelier_auth")
     if cookie_auth == "true":
         st.session_state.authentifie = True
+    elif cookie_auth is None:
+        # Cookie pas encore lu — attendre le prochain rendu
+        st.stop()
     else:
         st.session_state.authentifie = False
 

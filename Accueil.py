@@ -4,8 +4,8 @@ import json
 import requests
 import base64
 from style_sidebar import inject_style
+from streamlit_cookies_controller import CookieController
 
-# ── Configuration page ────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Atelier Devineau — Accueil",
     page_icon="🔧",
@@ -13,9 +13,17 @@ st.set_page_config(
 
 inject_style()
 
-# ── Authentification ──────────────────────────────────────────────────────────
-if "authentifie" not in st.session_state:
-    st.session_state.authentifie = False
+# ── Authentification via cookie ───────────────────────────────────────────────
+controller = CookieController()
+
+# Lire le cookie d'authentification
+cookie_auth = controller.get("atelier_auth")
+
+if not st.session_state.get("authentifie"):
+    if cookie_auth == "true":
+        st.session_state.authentifie = True
+    else:
+        st.session_state.authentifie = False
 
 if not st.session_state.authentifie:
     st.title("Accès à l'application")
@@ -23,6 +31,8 @@ if not st.session_state.authentifie:
     if st.button("Connexion"):
         if mdp == st.secrets["MOT_DE_PASSE"]:
             st.session_state.authentifie = True
+            # Écrire le cookie (expire dans 7 jours)
+            controller.set("atelier_auth", "true", max_age=7*24*3600)
             st.rerun()
         else:
             st.error("Mot de passe incorrect")
@@ -123,17 +133,20 @@ with col2:
 # ── Bannière image aléatoire ──────────────────────────────────────────────────
 import base64 as _b64, os as _os
 _img_path = st.session_state.image_banniere
-with open(_img_path, "rb") as _f:
-    _img_b64 = _b64.b64encode(_f.read()).decode("utf-8")
-_ext = _os.path.splitext(_img_path)[1].replace(".", "")
-st.markdown(
-    f"""<div style="width:100%;height:220px;overflow:hidden;border-radius:8px;
-    margin-bottom:16px;">
-    <img src="data:image/{_ext};base64,{_img_b64}"
-    style="width:100%;height:100%;object-fit:cover;object-position:center;">
-    </div>""",
-    unsafe_allow_html=True
-)
+try:
+    with open(_img_path, "rb") as _f:
+        _img_b64 = _b64.b64encode(_f.read()).decode("utf-8")
+    _ext = _os.path.splitext(_img_path)[1].replace(".", "")
+    st.markdown(
+        f"""<div style="width:100%;height:220px;overflow:hidden;border-radius:8px;
+        margin-bottom:16px;">
+        <img src="data:image/{_ext};base64,{_img_b64}"
+        style="width:100%;height:100%;object-fit:cover;object-position:center;">
+        </div>""",
+        unsafe_allow_html=True
+    )
+except FileNotFoundError:
+    pass
 
 # ── Phrase d'accueil ──────────────────────────────────────────────────────────
 st.markdown(

@@ -68,37 +68,5 @@
                 }
             ]
         }
-    },
-    "Brundibar": {
-        "Etude": {
-            "Nb_ressources": 4,
-            "Assignations": [
-                {
-                    "Nom": "Albert Einstein",
-                    "Pct": 3
-                },
-                {
-                    "Nom": "Marie Curie",
-                    "Pct": 49
-                },
-                {
-                    "Nom": "Charlie Chaplin",
-                    "Pct": 15
-                },
-                {
-                    "Nom": "Mickey Mouse",
-                    "Pct": 43
-                }
-            ]
-        },
-        "Montage": {
-            "Nb_ressources": 1,
-            "Assignations": [
-                {
-                    "Nom": "Marie Curie",
-                    "Pct": 29
-                }
-            ]
-        }
     }
 }

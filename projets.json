@@ -36,29 +36,6 @@
         "description": ""
     },
     {
-        "projet": "Brundibar",
-        "couleur": "#63CDEB",
-        "sous_taches": [
-            {
-                "tache": "Etude",
-                "start": "2026-01-09",
-                "end": "2026-05-15"
-            },
-            {
-                "tache": "Serrurerie",
-                "start": "2026-06-09",
-                "end": "2026-06-11"
-            },
-            {
-                "tache": "Peinture",
-                "start": "2026-06-12",
-                "end": "2026-06-14"
-            }
-        ],
-        "client": "Opéra comique",
-        "description": ""
-    },
-    {
         "projet": "Tournette",
         "couleur": "#A78BFA",
         "sous_taches": [

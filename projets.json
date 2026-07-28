@@ -1,26 +1,21 @@
 [
     {
-        "projet": "Enlèvement au sérail",
+        "projet": "Le mariage de Figaro",
         "couleur": "#FF6C6C",
         "sous_taches": [
             {
-                "tache": "Pré étude",
-                "start": "2026-03-15",
-                "end": "2026-05-30"
+                "tache": "Etude",
+                "start": "2026-07-20",
+                "end": "2026-07-31"
             },
             {
                 "tache": "Construction",
-                "start": "2026-05-30",
-                "end": "2026-06-27"
-            },
-            {
-                "tache": "wow",
-                "start": "2026-06-27",
-                "end": "2026-07-11"
+                "start": "2026-07-28",
+                "end": "2026-07-31"
             }
         ],
-        "client": "TCE",
-        "description": ""
+        "client": "Théâtre de la Porte Saint-Martin",
+        "description": "Jacques Gabel"
     },
     {
         "projet": "Manon Lescaut",

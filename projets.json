@@ -23,18 +23,13 @@
         "sous_taches": [
             {
                 "tache": "Etude",
-                "start": "2026-06-16",
-                "end": "2026-07-15"
-            },
-            {
-                "tache": "Bla bla",
-                "start": "2026-07-15",
-                "end": "2026-07-29"
-            },
-            {
-                "tache": "CU",
                 "start": "2026-06-22",
-                "end": "2026-06-27"
+                "end": "2026-07-31"
+            },
+            {
+                "tache": "Construction",
+                "start": "2026-07-20",
+                "end": "2026-08-14"
             }
         ],
         "client": "TCE",

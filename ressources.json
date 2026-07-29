@@ -250,7 +250,12 @@
         "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "",
-        "absences": []
+        "absences": [
+            {
+                "start": "2026-08-17",
+                "end": "2026-08-31"
+            }
+        ]
     },
     {
         "Nom": "Sacha Buathier",

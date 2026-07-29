@@ -36,7 +36,8 @@ def crea_proj_tab():
 
         for i, projet in enumerate(projets):
             couleur = projet["couleur"]
-            key_expander = f"__xpnd_p{i}__"
+            # Clé unique et stable pour cet expander
+            key_expander = f"xpnd_{i}"
             if key_expander not in st.session_state:
                 st.session_state[key_expander] = False
 
@@ -44,6 +45,10 @@ def crea_proj_tab():
                 f"**{projet['projet']}** - {len(projet['sous_taches'])} sous-tache(s)",
                 expanded=st.session_state[key_expander]
             ):
+                # Réinitialiser UNIQUEMENT si on n'est pas en train de faire un rerun forcé
+                # On ne remet pas à False ici pour éviter le problème
+                # (l'expander se souvient de son état via session_state)
+
                 # --------------- EDITION DU PROJET ---------------
                 new_proj = st.text_input(
                     "Nom du projet",
@@ -93,7 +98,6 @@ def crea_proj_tab():
                 for j, st_data in enumerate(sous_taches):
                     nom_actuel = st_data["tache"]
 
-                    # Si le nom est hors liste, on l'ajoute comme option unique pour ce selectbox
                     options_j = TACHES_TYPES[:]
                     if nom_actuel not in TACHES_TYPES:
                         options_j = [nom_actuel] + TACHES_TYPES
@@ -101,13 +105,14 @@ def crea_proj_tab():
 
                     cols = st.columns([3, 2, 2, 0.6])
                     with cols[0]:
+                        # Capturer i dans la closure correctement
+                        _i, _ke = i, key_expander
                         choix_type = st.selectbox(
                             "Type",
                             options=options_j,
                             index=index_type,
                             key=f"tache_type_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         )
                         if choix_type == "Autre":
                             nom_custom = st.text_input(
@@ -118,7 +123,6 @@ def crea_proj_tab():
                             )
                             if st.button("Valider", key=f"tache_valider_{i}_{j}"):
                                 if nom_custom.strip():
-                                    # Persister directement dans Projets_gantt
                                     st.session_state.Projets_gantt[i]["sous_taches"][j]["tache"] = nom_custom.strip()
                                     if f"tache_custom_{i}_{j}" in st.session_state:
                                         del st.session_state[f"tache_custom_{i}_{j}"]
@@ -134,7 +138,6 @@ def crea_proj_tab():
                             value=date.fromisoformat(st_data["start"]),
                             key=f"start_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         ).isoformat()
                     with cols[2]:
                         sous_taches[j]["end"] = st.date_input(
@@ -142,7 +145,6 @@ def crea_proj_tab():
                             value=date.fromisoformat(st_data["end"]),
                             key=f"end_{i}_{j}",
                             label_visibility="collapsed",
-                            on_change=lambda k=key_expander: st.session_state.__setitem__(k, True)
                         ).isoformat()
                     with cols[3]:
                         if st.button("🗑️", key=f"del_st_{i}_{j}", help="Supprimer cette tâche"):

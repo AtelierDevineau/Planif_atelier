@@ -94,7 +94,13 @@
         "couleur": "#F472B6",
         "client": "CHANEL",
         "description": "Grues",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X175-26K-Béton SERIE",

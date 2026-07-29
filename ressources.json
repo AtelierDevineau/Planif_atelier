@@ -12,13 +12,6 @@
         ]
     },
     {
-        "Nom": "Albert Einstein",
-        "Poste": "BE",
-        "Contrat": "Permanent",
-        "Dispo_base": 100,
-        "absences": []
-    },
-    {
         "Nom": "Marie Curie",
         "Poste": "Usinage",
         "Contrat": "Intermittent",
@@ -40,13 +33,6 @@
     {
         "Nom": "Charlie Chaplin",
         "Poste": "Administration",
-        "Contrat": "Intermittent",
-        "Dispo_base": 100,
-        "absences": []
-    },
-    {
-        "Nom": "Freddy Mercury",
-        "Poste": "BE",
         "Contrat": "Intermittent",
         "Dispo_base": 100,
         "absences": []
@@ -77,6 +63,86 @@
         "Nom": "Tintin",
         "Poste": "Tapisserie",
         "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Victor Denès",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Clément Ponroy",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Thibaud Le Prévost",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Nicolas Vye",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Margot Névot",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Sébastien Gallien",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Peggy Faveaux",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Alix De Joussineau",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 50,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Lorenzo Fulcheri",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Fabrice Gros",
+        "Poste": "BE",
+        "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "",
         "absences": []

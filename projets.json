@@ -89,5 +89,12 @@
         "client": "CHANEL",
         "description": "Grues",
         "sous_taches": []
+    },
+    {
+        "projet": "X175-26K-Béton SERIE",
+        "couleur": "#94A3B8",
+        "client": "CHANEL",
+        "description": "Grues",
+        "sous_taches": []
     }
 ]

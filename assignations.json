@@ -96,5 +96,20 @@
                 }
             ]
         }
+    },
+    "Tarare": {
+        "Etude": {
+            "Nb_ressources": 2,
+            "Assignations": [
+                {
+                    "Nom": "Margot Névot",
+                    "Pct": 32
+                },
+                {
+                    "Nom": "Clément Ponroy",
+                    "Pct": 21
+                }
+            ]
+        }
     }
 }

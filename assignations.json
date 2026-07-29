@@ -36,17 +36,6 @@
             ]
         }
     },
-    "Le mariage de Figaro": {
-        "Etude": {
-            "Nb_ressources": 1,
-            "Assignations": [
-                {
-                    "Nom": "Madonna",
-                    "Pct": 100
-                }
-            ]
-        }
-    },
     "YSL Lustres": {
         "Montage": {
             "Nb_ressources": 1,
@@ -54,6 +43,17 @@
                 {
                     "Nom": "Freddy Mercury",
                     "Pct": 31
+                }
+            ]
+        }
+    },
+    "Le zip": {
+        "Etude": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Madonna",
+                    "Pct": 100
                 }
             ]
         }

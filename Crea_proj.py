@@ -173,11 +173,22 @@ def crea_proj_tab():
                 col_save, col_del = st.columns([1, 1])
                 with col_save:
                     if st.button("✅ Enregistrer les modifications", key=f"save_{i}"):
+                        ancien_nom = projets[i]["projet"]
                         projets[i]["projet"] = new_proj
                         projets[i]["couleur"] = new_color
                         projets[i]["sous_taches"] = sous_taches
                         projets[i]["client"] = new_client
                         projets[i]["description"] = new_description
+
+                        # Si le nom a changé, renommer la clé dans Data_proj
+                        if ancien_nom != new_proj and ancien_nom in st.session_state.Data_proj:
+                            st.session_state.Data_proj[new_proj] = st.session_state.Data_proj.pop(ancien_nom)
+                            nouveau_sha_assig = sauvegarder_assignations_github(
+                                st.session_state.Data_proj,
+                                st.session_state.assignations_sha
+                            )
+                            st.session_state.assignations_sha = nouveau_sha_assig
+
                         nouveau_sha = sauvegarder_projets_github(
                             projets, st.session_state.projets_sha
                         )

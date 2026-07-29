@@ -145,5 +145,12 @@
         "client": "Opéra de Versailles",
         "description": "Scénographie Bruno de Lavenère",
         "sous_taches": []
+    },
+    {
+        "projet": "Loubishow",
+        "couleur": "#FF6C6C",
+        "client": "Louboutin",
+        "description": "",
+        "sous_taches": []
     }
 ]

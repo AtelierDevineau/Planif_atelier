@@ -82,5 +82,12 @@
         "client": "Théâtre Antoine",
         "description": "",
         "sous_taches": []
+    },
+    {
+        "projet": "X175-26K-Béton",
+        "couleur": "#F472B6",
+        "client": "CHANEL",
+        "description": "Grues",
+        "sous_taches": []
     }
 ]

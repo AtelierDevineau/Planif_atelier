@@ -159,14 +159,26 @@
         "couleur": "#1D8074",
         "client": "CHANEL",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Pré étude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X178-27P PROTO",
         "couleur": "#54606B",
         "client": "CHANEL",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X178-27P SERIE",

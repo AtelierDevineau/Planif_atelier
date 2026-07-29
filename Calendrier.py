@@ -496,16 +496,252 @@ def gantt_tableau(projets_data, data_proj, date_debut_grille, date_fin_grille, g
 # ONGLET CALENDRIER
 # -------------------------------------------------------
 
+def gantt_ressources(ressources_base, data_proj, date_debut_grille, date_fin_grille, font_face=""):
+    """
+    Gantt par pôle/ressource.
+    - Un bloc par pôle avec titre coloré
+    - Une section par ressource dans le pôle
+    - Barres colorées avec la couleur du pôle
+    - Label : Nom projet — Sous-tâche
+    """
+    from donnees import POSTES, get_couleur_poste
+    today = date.today()
+
+    jours = get_jours(date_debut_grille, date_fin_grille)
+    lundis = get_lundis(date_debut_grille, date_fin_grille)
+    nb_jours = len(jours)
+
+    colonnes = []
+    for jour in jours:
+        if jour.weekday() == 0 and jour != jours[0]:
+            colonnes.append({"type": "sep"})
+        colonnes.append({"type": "jour", "jour": jour})
+
+    col_index = {col["jour"]: i for i, col in enumerate(colonnes) if col["type"] == "jour"}
+    nb_cols = len(colonnes)
+    nb_seps = sum(1 for c in colonnes if c["type"] == "sep")
+    largeur_totale = nb_jours * 14 + nb_seps * 3
+
+    # Construire index rapide : nom_ressource → liste de (nom_projet, sous_tache, debut, fin)
+    ress_taches = {}
+    for projet_nom, sous_taches_dict in data_proj.items():
+        for nom_st, data_st in sous_taches_dict.items():
+            for a in data_st.get("Assignations", []):
+                nom_ress = a["Nom"]
+                if nom_ress not in ress_taches:
+                    ress_taches[nom_ress] = []
+                # Chercher les dates dans Projets_gantt
+                from donnees import get_couleur_projet
+                import streamlit as _st
+                for p in _st.session_state.Projets_gantt:
+                    if p["projet"] == projet_nom:
+                        for st_data in p["sous_taches"]:
+                            if st_data["tache"] == nom_st:
+                                ress_taches[nom_ress].append({
+                                    "projet": projet_nom,
+                                    "tache": nom_st,
+                                    "start": st_data["start"],
+                                    "end": st_data["end"],
+                                })
+
+    css = f"""
+    <style>
+    {font_face}
+    body, table, td, th {{ font-family: 'GTWalsheim', sans-serif; }}
+    .gantt-wrap {{ overflow-x: auto; width: 100%; }}
+    .gantt-table {{
+        border-collapse: separate;
+        border-spacing: 0;
+        width: {largeur_totale}px;
+        table-layout: fixed;
+        font-size: 0.82em;
+        margin-bottom: 24px;
+    }}
+    .gh {{ text-align:left;padding:4px 6px;font-weight:bold;font-size:0.85em;
+           background:#f5f5f5;border-bottom:2px solid #ccc;border-top:none;
+           border-right:none;border-left:none;white-space:nowrap;overflow:hidden; }}
+    .gh-sep {{ background:#999;width:3px;padding:0;border:none; }}
+    .gc {{ padding:0;height:24px;border-right:1px solid #f0f0f0;
+           border-top:none;border-bottom:none;border-left:none; }}
+    .gc-today {{ padding:0;height:24px;border-right:1px solid #f0f0f0;
+                 border-top:none;border-bottom:none;border-left:none;background:#FFFACD; }}
+    .gc2 {{ padding:0;height:20px;border-right:1px solid #f0f0f0;
+            border-top:none;border-bottom:none;border-left:none; }}
+    .gc2-today {{ padding:0;height:20px;border-right:1px solid #f0f0f0;
+                  border-top:none;border-bottom:none;border-left:none;background:#FFFACD; }}
+    .gc-sep {{ background:#bbb;width:3px;padding:0;border:none;height:24px; }}
+    .gc-sep2 {{ background:#bbb;width:3px;padding:0;border:none;height:20px; }}
+    .gb1 {{ padding:0 8px;height:24px;vertical-align:middle;text-align:center;
+            font-weight:bold;font-size:0.85em;color:#fff;white-space:nowrap;
+            overflow:hidden;text-overflow:ellipsis;border:none; }}
+    .gb1-dark {{ padding:0 8px;height:24px;vertical-align:middle;text-align:center;
+                 font-weight:bold;font-size:0.85em;color:#222;white-space:nowrap;
+                 overflow:hidden;text-overflow:ellipsis;border:none; }}
+    .gb2 {{ padding:0 8px;height:20px;vertical-align:middle;font-size:0.78em;
+            color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:none; }}
+    .gsep td {{ border-bottom:2px solid #ccc !important; }}
+    .ress-sep td {{ border-bottom:1px solid #e0e0e0 !important; }}
+    </style>
+    """
+
+    colgroup = '<colgroup>'
+    for col in colonnes:
+        if col["type"] == "sep":
+            colgroup += '<col style="width:3px;min-width:3px;max-width:3px;">'
+        else:
+            colgroup += '<col style="width:14px;min-width:14px;">'
+    colgroup += '</colgroup>'
+
+    header = '<tr>'
+    for lundi in lundis:
+        jours_sem = [j for j in jours if lundi <= j < lundi + timedelta(weeks=1)]
+        if not jours_sem:
+            continue
+        if lundi != lundis[0]:
+            header += '<th class="gh-sep"></th>'
+        label = f"Lun. {lundi.day}/{lundi.month}"
+        header += f'<th colspan="{len(jours_sem)}" class="gh">{label}</th>'
+    header += '</tr>'
+
+    # Construire les blocs par pôle
+    html_blocs = ""
+    for poste, couleur_poste in POSTES.items():
+        ress_du_poste = [r for r in ressources_base if r.get("Poste") == poste]
+        if not ress_du_poste:
+            continue
+
+        # Titre du pôle
+        html_blocs += (
+            f'<div style="margin-top:20px;margin-bottom:6px;font-weight:bold;'
+            f'font-size:1em;color:{couleur_poste};border-left:4px solid {couleur_poste};'
+            f'padding-left:8px;">{poste}</div>'
+        )
+
+        # Couleur texte selon luminosité
+        r_int = int(couleur_poste.lstrip("#")[0:2], 16)
+        g_int = int(couleur_poste.lstrip("#")[2:4], 16)
+        b_int = int(couleur_poste.lstrip("#")[4:6], 16)
+        luminosite = 0.299*r_int + 0.587*g_int + 0.114*b_int
+        cls_texte = "gb1-dark" if luminosite > 160 else "gb1"
+        couleur_sub = couleur_poste + "99"
+
+        rows = ""
+        for r_idx, ress in enumerate(ress_du_poste):
+            nom_ress = ress["Nom"]
+            taches_ress = ress_taches.get(nom_ress, [])
+            is_last_ress = r_idx == len(ress_du_poste) - 1
+
+            if not taches_ress:
+                # Ressource sans assignation : 2 lignes vides
+                row1 = f'<tr><td style="padding:2px 8px;font-size:0.82em;font-weight:bold;" colspan="1">{nom_ress}</td>'
+                for col in colonnes:
+                    if col["type"] == "sep":
+                        row1 += '<td class="gc-sep"></td>'
+                    elif col["jour"] == today:
+                        row1 += '<td class="gc-today"></td>'
+                    else:
+                        row1 += '<td class="gc"></td>'
+                row1 += '</tr>'
+                sep_cls = ' class="gsep"' if is_last_ress else ' class="ress-sep"'
+                row2 = f'<tr{sep_cls}><td></td>'
+                for col in colonnes:
+                    if col["type"] == "sep":
+                        row2 += '<td class="gc-sep2"></td>'
+                    elif col["jour"] == today:
+                        row2 += '<td class="gc2-today"></td>'
+                    else:
+                        row2 += '<td class="gc2"></td>'
+                row2 += '</tr>'
+                rows += row1 + row2
+            else:
+                for t_idx, tache in enumerate(taches_ress):
+                    is_last_tache = t_idx == len(taches_ress) - 1
+                    debut_st = date.fromisoformat(tache["start"])
+                    fin_st = date.fromisoformat(tache["end"])
+                    label_barre = f"{tache['projet']} — {tache['tache']}"
+
+                    debut_visible = max(debut_st, date_debut_grille)
+                    fin_visible = min(fin_st, date_fin_grille)
+                    dans_fenetre = debut_visible < fin_visible
+
+                    if dans_fenetre:
+                        ci_debut = col_index.get(debut_visible, 0)
+                        ci_fin = col_index.get(fin_visible, nb_cols)
+                        colspan_barre = ci_fin - ci_debut
+                    else:
+                        ci_debut = None
+                        colspan_barre = 0
+
+                    # Label ressource uniquement sur la première tâche
+                    label_ress = nom_ress if t_idx == 0 else ""
+
+                    # Ligne 1
+                    row1 = f'<tr><td style="padding:2px 8px;font-size:0.82em;font-weight:bold;white-space:nowrap;">{label_ress}</td>'
+                    ci = 0
+                    while ci < nb_cols:
+                        col = colonnes[ci]
+                        if col["type"] == "sep":
+                            row1 += '<td class="gc-sep"></td>'
+                            ci += 1
+                        elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
+                            row1 += (
+                                f'<td colspan="{colspan_barre}" class="{cls_texte}" '
+                                f'style="background:{couleur_poste};">{label_barre}</td>'
+                            )
+                            ci += colspan_barre
+                        else:
+                            est_today = col["type"] == "jour" and col["jour"] == today
+                            row1 += f'<td class="{"gc-today" if est_today else "gc"}"></td>'
+                            ci += 1
+                    row1 += '</tr>'
+
+                    # Ligne 2 vide (cohérence visuelle avec vue projets)
+                    sep = is_last_tache and is_last_ress
+                    sep_cls = ' class="gsep"' if sep else (' class="ress-sep"' if is_last_tache else '')
+                    row2 = f'<tr{sep_cls}><td></td>'
+                    ci = 0
+                    while ci < nb_cols:
+                        col = colonnes[ci]
+                        if col["type"] == "sep":
+                            row2 += '<td class="gc-sep2"></td>'
+                            ci += 1
+                        elif dans_fenetre and ci == ci_debut and colspan_barre > 0:
+                            row2 += f'<td colspan="{colspan_barre}" class="gb2" style="background:{couleur_sub};"></td>'
+                            ci += colspan_barre
+                        else:
+                            est_today = col["type"] == "jour" and col["jour"] == today
+                            row2 += f'<td class="{"gc2-today" if est_today else "gc2"}"></td>'
+                            ci += 1
+                    row2 += '</tr>'
+                    rows += row1 + row2
+
+        html_blocs += f"""
+        <div class="gantt-wrap">
+        <table class="gantt-table">
+            {colgroup}
+            <thead>{header}</thead>
+            <tbody>{rows}</tbody>
+        </table>
+        </div>
+        """
+
+    return f"{css}{html_blocs}"
+
+
+# -------------------------------------------------------
+# ONGLET CALENDRIER
+# -------------------------------------------------------
+
 def calendrier_tab():
     st.subheader('Calendrier')
     selection = st.pills(
         " ",
-        ["Projets", "Absences"],
+        ["Par projet", "Par ressource", "Absences"],
         selection_mode="single",
-        default="Projets"
+        default="Par projet"
     )
 
-    if selection == "Projets":
+    if selection in ("Par projet", "Par ressource"):
         projets = st.session_state.Projets_gantt
         data_proj = st.session_state.Data_proj
 
@@ -525,7 +761,7 @@ def calendrier_tab():
         except FileNotFoundError:
             pass
 
-        # Plage de dates
+        # Plage de dates commune
         toutes_dates = [
             date.fromisoformat(st_data[cle])
             for p in projets
@@ -540,12 +776,12 @@ def calendrier_tab():
             date_debut_grille = today - timedelta(days=7)
             date_fin_grille = today + timedelta(weeks=12)
 
+    if selection == "Par projet":
         st.markdown("#### Vue d'ensemble")
         if projets:
             html_global = gantt_tableau(projets, data_proj, date_debut_grille, date_fin_grille, "gantt_global", font_face)
             st.markdown(html_global, unsafe_allow_html=True)
 
-            # Export vue globale
             col_csv, col_xl, _ = st.columns([1, 1, 6])
             with col_csv:
                 st.download_button(
@@ -566,7 +802,6 @@ def calendrier_tab():
         else:
             st.info("Aucun projet à afficher.")
 
-        # Détecter un clic transmis via query params
         params = st.query_params
         if "gantt_projet" in params and "gantt_tache" in params:
             nom_projet_clic = params["gantt_projet"]
@@ -596,7 +831,6 @@ def calendrier_tab():
                 html_detail = gantt_tableau([projet_data], data_proj, d_debut, d_fin, "gantt_detail", font_face)
                 st.markdown(html_detail, unsafe_allow_html=True)
 
-                # Export vue détaillée
                 col_csv2, col_xl2, _ = st.columns([1, 1, 6])
                 with col_csv2:
                     st.download_button(
@@ -616,6 +850,14 @@ def calendrier_tab():
                     )
             else:
                 st.info("Ce projet n'a pas encore de sous-tâches.")
+
+    if selection == "Par ressource":
+        ressources = st.session_state.Ressources_base
+        if ressources:
+            html_ress = gantt_ressources(ressources, data_proj, date_debut_grille, date_fin_grille, font_face)
+            st.markdown(html_ress, unsafe_allow_html=True)
+        else:
+            st.info("Aucune ressource créée.")
 
     if selection == "Absences":
         with st.form("form_absence", clear_on_submit=True):

@@ -96,5 +96,12 @@
         "client": "CHANEL",
         "description": "Grues",
         "sous_taches": []
+    },
+    {
+        "projet": "X176-27C-Biarritz PROTO",
+        "couleur": "#FF6C6C",
+        "client": "CHANEL",
+        "description": "",
+        "sous_taches": []
     }
 ]

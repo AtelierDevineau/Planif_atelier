@@ -81,5 +81,20 @@
                 }
             ]
         }
+    },
+    "Loubishow": {
+        "Etude": {
+            "Nb_ressources": 2,
+            "Assignations": [
+                {
+                    "Nom": "Clément Ponroy",
+                    "Pct": 21
+                },
+                {
+                    "Nom": "Alexandre Bour",
+                    "Pct": 50
+                }
+            ]
+        }
     }
 }

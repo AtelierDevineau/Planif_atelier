@@ -1,38 +1,5 @@
 [
     {
-        "Nom": "Marie Curie",
-        "Poste": "Usinage",
-        "Contrat": "Intermittent",
-        "Dispo_base": 100,
-        "absences": []
-    },
-    {
-        "Nom": "Aya Nakamura",
-        "Poste": "Peinture",
-        "Contrat": "Permanent",
-        "Dispo_base": 100,
-        "absences": [
-            {
-                "start": "2026-06-02",
-                "end": "2026-06-19"
-            }
-        ]
-    },
-    {
-        "Nom": "Mickey Mouse",
-        "Poste": "Construction",
-        "Contrat": "Permanent",
-        "Dispo_base": 50,
-        "absences": []
-    },
-    {
-        "Nom": "Jean Jacques Goldman",
-        "Poste": "Régisseur",
-        "Contrat": "Intermittent",
-        "Dispo_base": 100,
-        "absences": []
-    },
-    {
         "Nom": "Victor Denès",
         "Poste": "BE",
         "Contrat": "Permanent",
@@ -155,6 +122,78 @@
     {
         "Nom": "Hélène Heitz-Binoth",
         "Poste": "Tapisserie",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Kévin Morlot",
+        "Poste": "Usinage",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "François Dos Reis",
+        "Poste": "Usinage",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Yves Mortelecq",
+        "Poste": "Régisseur",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Catherine Rankl",
+        "Poste": "Peinture",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Valentin Luce-Roque",
+        "Poste": "Construction",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Maxime Serero",
+        "Poste": "Construction",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Alexandre Bour",
+        "Poste": "BE",
+        "Contrat": "Intermittent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Camille Trainaud",
+        "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Sébastien Lebret",
+        "Poste": "Peinture",
         "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "",

@@ -75,5 +75,12 @@
                 "end": "2026-07-31"
             }
         ]
+    },
+    {
+        "projet": "Le sens du l'humour",
+        "couleur": "#A78BFA",
+        "client": "Théâtre Antoine",
+        "description": "",
+        "sous_taches": []
     }
 ]

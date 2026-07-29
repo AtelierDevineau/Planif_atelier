@@ -81,7 +81,13 @@
         "couleur": "#00FF20",
         "client": "Théâtre Antoine",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-27",
+                "end": "2026-07-31"
+            }
+        ]
     },
     {
         "projet": "X175-26K-Béton PROTO",

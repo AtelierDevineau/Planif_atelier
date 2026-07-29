@@ -146,7 +146,13 @@
         "couleur": "#D467F5",
         "client": "CHANEL",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X177-EOY-Biches SERIE",

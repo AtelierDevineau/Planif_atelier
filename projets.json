@@ -68,6 +68,12 @@
         "couleur": "#6BCB77",
         "client": "Théâtre du gymnase",
         "description": "Mise en scène Jacques Gabel",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Construction",
+                "start": "2026-07-29",
+                "end": "2026-07-31"
+            }
+        ]
     }
 ]

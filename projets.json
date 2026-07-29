@@ -211,6 +211,12 @@
         "couleur": "#AB6209",
         "client": "Louboutin",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     }
 ]

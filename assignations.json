@@ -57,5 +57,16 @@
                 }
             ]
         }
+    },
+    "Le sens du l'humour": {
+        "Etude": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Victor Denès",
+                    "Pct": 10
+                }
+            ]
+        }
     }
 }

@@ -185,14 +185,26 @@
         "couleur": "#83965F",
         "client": "CHANEL",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Pré étude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "Tarare",
         "couleur": "#00FFF4",
         "client": "Opéra de Versailles",
         "description": "Scénographie Bruno de Lavenère",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "Loubishow",

@@ -84,7 +84,7 @@
     },
     "Loubishow": {
         "Etude": {
-            "Nb_ressources": 2,
+            "Nb_ressources": 3,
             "Assignations": [
                 {
                     "Nom": "Clément Ponroy",
@@ -93,6 +93,10 @@
                 {
                     "Nom": "Alexandre Bour",
                     "Pct": 50
+                },
+                {
+                    "Nom": "Thibaud Le Prévost",
+                    "Pct": 40
                 }
             ]
         }

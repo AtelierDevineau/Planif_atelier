@@ -340,6 +340,11 @@
         "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "Magasinier",
-        "absences": []
+        "absences": [
+            {
+                "start": "2026-08-06",
+                "end": "2026-08-12"
+            }
+        ]
     }
 ]

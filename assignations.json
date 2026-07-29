@@ -1,21 +1,12 @@
 {
     "Manon Lescaut": {
         "Conception": {
-            "Nb_ressources": 1,
-            "Assignations": [
-                {
-                    "Nom": "Albert Einstein",
-                    "Pct": 21
-                }
-            ]
+            "Nb_ressources": 0,
+            "Assignations": []
         },
         "Fabrication": {
-            "Nb_ressources": 3,
+            "Nb_ressources": 2,
             "Assignations": [
-                {
-                    "Nom": "Albert Einstein",
-                    "Pct": 11
-                },
                 {
                     "Nom": "Aya Nakamura",
                     "Pct": 100

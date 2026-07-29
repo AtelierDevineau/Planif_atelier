@@ -62,5 +62,12 @@
         ],
         "client": "YSL",
         "description": ""
+    },
+    {
+        "projet": "Le discours d'un roi",
+        "couleur": "#6BCB77",
+        "client": "Théâtre du gymnase",
+        "description": "Mise en scène Jacques Gabel",
+        "sous_taches": []
     }
 ]

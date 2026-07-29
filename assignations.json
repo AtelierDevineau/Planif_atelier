@@ -18,13 +18,8 @@
             ]
         },
         "Construction": {
-            "Nb_ressources": 1,
-            "Assignations": [
-                {
-                    "Nom": "Abraham Lincoln",
-                    "Pct": 14
-                }
-            ]
+            "Nb_ressources": 0,
+            "Assignations": []
         }
     },
     "YSL Lustres": {

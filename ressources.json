@@ -251,5 +251,45 @@
         "Dispo_base": 100,
         "Precision": "",
         "absences": []
+    },
+    {
+        "Nom": "Sacha Buathier",
+        "Poste": "Peinture",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Maxime Lagaisse",
+        "Poste": "Construction",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Xavier Legrand",
+        "Poste": "Construction",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Ludovic Masse",
+        "Poste": "Construction",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Anicet Delcambre",
+        "Poste": "Autres",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "Magasinier",
+        "absences": []
     }
 ]

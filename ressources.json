@@ -5,7 +5,12 @@
         "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "",
-        "absences": []
+        "absences": [
+            {
+                "start": "2026-08-05",
+                "end": "2026-08-06"
+            }
+        ]
     },
     {
         "Nom": "Clément Ponroy",

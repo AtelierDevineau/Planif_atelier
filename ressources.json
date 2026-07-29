@@ -75,7 +75,12 @@
         "Contrat": "Permanent",
         "Dispo_base": 50,
         "Precision": "",
-        "absences": []
+        "absences": [
+            {
+                "start": "2026-08-24",
+                "end": "2026-08-31"
+            }
+        ]
     },
     {
         "Nom": "Lorenzo Fulcheri",

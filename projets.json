@@ -48,6 +48,11 @@
                 "tache": "Serrurerie",
                 "start": "2026-07-20",
                 "end": "2026-07-31"
+            },
+            {
+                "tache": "Montage",
+                "start": "2026-09-24",
+                "end": "2026-09-25"
             }
         ],
         "client": "YSL",

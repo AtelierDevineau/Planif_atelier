@@ -152,5 +152,16 @@
                 }
             ]
         }
+    },
+    "X176-27C-Biarritz SERIE": {
+        "Etude": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Nicolas Vye",
+                    "Pct": 17
+                }
+            ]
+        }
     }
 }

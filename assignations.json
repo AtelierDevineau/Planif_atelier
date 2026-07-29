@@ -88,5 +88,16 @@
                 }
             ]
         }
+    },
+    "YSL Lustres": {
+        "Montage": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Freddy Mercury",
+                    "Pct": 31
+                }
+            ]
+        }
     }
 }

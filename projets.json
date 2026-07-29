@@ -131,5 +131,12 @@
         "client": "CHANEL",
         "description": "",
         "sous_taches": []
+    },
+    {
+        "projet": "X178-27P SERIE",
+        "couleur": "#FF6C6C",
+        "client": "CHANEL",
+        "description": "",
+        "sous_taches": []
     }
 ]

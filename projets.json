@@ -30,6 +30,11 @@
                 "tache": "Construction",
                 "start": "2026-07-20",
                 "end": "2026-08-14"
+            },
+            {
+                "tache": "Peinture",
+                "start": "2026-08-21",
+                "end": "2026-08-30"
             }
         ],
         "client": "TCE",

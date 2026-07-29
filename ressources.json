@@ -1,17 +1,5 @@
 [
     {
-        "Nom": "Abraham Lincoln",
-        "Poste": "Serrurerie",
-        "Contrat": "Permanent",
-        "Dispo_base": 100,
-        "absences": [
-            {
-                "start": "2026-05-20",
-                "end": "2026-05-30"
-            }
-        ]
-    },
-    {
         "Nom": "Marie Curie",
         "Poste": "Usinage",
         "Contrat": "Intermittent",
@@ -31,13 +19,6 @@
         ]
     },
     {
-        "Nom": "Charlie Chaplin",
-        "Poste": "Administration",
-        "Contrat": "Intermittent",
-        "Dispo_base": 100,
-        "absences": []
-    },
-    {
         "Nom": "Mickey Mouse",
         "Poste": "Construction",
         "Contrat": "Permanent",
@@ -49,22 +30,6 @@
         "Poste": "Régisseur",
         "Contrat": "Intermittent",
         "Dispo_base": 100,
-        "absences": []
-    },
-    {
-        "Nom": "Madonna",
-        "Poste": "Autres",
-        "Contrat": "Permanent",
-        "Dispo_base": 100,
-        "Precision": "Prestataire",
-        "absences": []
-    },
-    {
-        "Nom": "Tintin",
-        "Poste": "Tapisserie",
-        "Contrat": "Intermittent",
-        "Dispo_base": 100,
-        "Precision": "",
         "absences": []
     },
     {
@@ -142,6 +107,54 @@
     {
         "Nom": "Fabrice Gros",
         "Poste": "BE",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Rahma Jdiri",
+        "Poste": "Autres",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "Ménage",
+        "absences": []
+    },
+    {
+        "Nom": "Vanessa Szczecina",
+        "Poste": "Serrurerie",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Valérie Cabrières",
+        "Poste": "Administration",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Audrey Castelle",
+        "Poste": "Administration",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Marianne Magnin",
+        "Poste": "Administration",
+        "Contrat": "Permanent",
+        "Dispo_base": 100,
+        "Precision": "",
+        "absences": []
+    },
+    {
+        "Nom": "Hélène Heitz-Binoth",
+        "Poste": "Tapisserie",
         "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "",

@@ -120,14 +120,26 @@
         "couleur": "#FF6C6C",
         "client": "CHANEL",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Pré étude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X176-27C-Biarritz SERIE",
         "couleur": "#FFF978",
         "client": "CHANEL",
         "description": "",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X177-EOY-Biches PROTO",

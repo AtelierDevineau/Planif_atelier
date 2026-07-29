@@ -218,7 +218,12 @@
         "Contrat": "Permanent",
         "Dispo_base": 100,
         "Precision": "",
-        "absences": []
+        "absences": [
+            {
+                "start": "2026-08-01",
+                "end": "2026-08-10"
+            }
+        ]
     },
     {
         "Nom": "Maxime Serero",

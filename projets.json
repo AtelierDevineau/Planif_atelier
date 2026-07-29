@@ -107,7 +107,13 @@
         "couleur": "#94A3B8",
         "client": "CHANEL",
         "description": "Grues",
-        "sous_taches": []
+        "sous_taches": [
+            {
+                "tache": "Etude",
+                "start": "2026-07-29",
+                "end": "2026-08-12"
+            }
+        ]
     },
     {
         "projet": "X176-27C-Biarritz PROTO",

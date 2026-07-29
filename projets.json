@@ -110,5 +110,12 @@
         "client": "CHANEL",
         "description": "",
         "sous_taches": []
+    },
+    {
+        "projet": "X177-EOY-Biches PROTO",
+        "couleur": "#FF6C6C",
+        "client": "CHANEL",
+        "description": "",
+        "sous_taches": []
     }
 ]

@@ -141,5 +141,16 @@
                 }
             ]
         }
+    },
+    "X176-27C-Biarritz PROTO": {
+        "Pré étude": {
+            "Nb_ressources": 1,
+            "Assignations": [
+                {
+                    "Nom": "Nicolas Vye",
+                    "Pct": 25
+                }
+            ]
+        }
     }
 }

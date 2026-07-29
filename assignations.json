@@ -111,5 +111,20 @@
                 }
             ]
         }
+    },
+    "X175-26K-Béton PROTO": {
+        "Pré étude": {
+            "Nb_ressources": 2,
+            "Assignations": [
+                {
+                    "Nom": "Margot Névot",
+                    "Pct": 10
+                },
+                {
+                    "Nom": "Nicolas Vye",
+                    "Pct": 10
+                }
+            ]
+        }
     }
 }

@@ -4,13 +4,29 @@ from donnees import sauvegarder_projets_github, sauvegarder_assignations_github
 
 #-------------AFFICHAGE----------------------
 COULEURS_PALETTE = {
-    "Rouge":    "#FF6C6C",
-    "Orange":   "#FFBD45",
-    "Bleu":     "#63CDEB",
-    "Vert":     "#6BCB77",
+    "Rouge":    "#FF0000",
+    "Orange pâle":   "#FFBD45",
+    "Orange":    "#FF8800",
+    "Bleu ciel":     "#63CDEB",
+    "Vert":     "#00FF20",
     "Violet":   "#A78BFA",
     "Rose":     "#F472B6",
-    "Gris":     "#94A3B8",
+    "Gris clair":     "#94A3B8",
+    "Jaune":    "#FFF978",
+    "Noir":    "#000000",
+    "Magenta":    "#D467F5",
+    "Cyan":    "#00FFF4",
+    "Mauve":    "#CEB0FF",
+    "Vert clair":    "#6BCB77",
+    "Kaki":    "#83965F",
+    "Forêt":    "#186103",    
+    "Bleu marine":    "#0006FF",
+    "Bordeaux":    "#801D4E",
+    "Bleu canard": "#1D8074",
+    "Marron":    "#AB6209",
+    "Brun":    "#52432C",
+    "Gris foncé":    "#54606B",
+    "Rouge rose":    "#FF6C6C",
 }
 
 TACHES_TYPES = [

@@ -182,7 +182,9 @@ def crea_proj_tab():
                         "start": last_end.isoformat(),
                         "end": (last_end + timedelta(weeks=2)).isoformat(),
                     })
-                    st.session_state[key_expander] = True
+                    # Fermer tous les autres expanders, garder seulement celui-ci ouvert
+                    for k in range(len(projets)):
+                        st.session_state[f"xpnd_{k}"] = (k == i)
                     st.rerun()
 
                 # -------------- BOUTONS --------------------------

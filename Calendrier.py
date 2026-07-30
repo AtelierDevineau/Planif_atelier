@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 from streamlit_calendar import calendar
 from datetime import date, timedelta
 from donnees import Options_cal, build_absences_cal, sauvegarder_ressources_github
-from donnees import COULEURS_TACHES, ORDRE_TACHES, get_couleur_tache
+from donnees import COULEURS_TACHES, ORDRE_TACHES, get_couleur_tache, fmt_date
 import pandas as pd
 import io
 
@@ -872,7 +872,7 @@ def calendrier_tab():
         toutes_absences = []
         for r in st.session_state.Ressources_base:
             for idx, absence in enumerate(r.get("absences", [])):
-                label = f"{r['Nom']} — {absence['start']} → {absence['end']}"
+                label = f"{r['Nom']} — {fmt_date(absence['start'])} → {fmt_date(absence['end'])}"
                 toutes_absences.append((r["Nom"], idx, label, absence))
 
         # ── Ajout d'une absence ──

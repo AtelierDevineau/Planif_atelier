@@ -18,17 +18,39 @@ def est_absent_aujourdhui(ressource):
 
 
 def html_tableau_projets(projets):
-    """Génère un tableau HTML avec une cellule colorée par projet."""
+    """Génère un tableau HTML avec une cellule colorée par projet et colonne Montage."""
+    from datetime import date as _date
+    today = _date.today()
     lignes = ""
     for p in projets:
         couleur = p["couleur"]
         nom = p["projet"]
         client = p.get("client", "—")
+
+        # Chercher la sous-tâche "Montage"
+        montage_cell = "<td style='padding:6px 12px;color:#999;'>—</td>"
+        for st in p.get("sous_taches", []):
+            if st["tache"] == "Montage":
+                debut = _date.fromisoformat(st["start"])
+                fin = _date.fromisoformat(st["end"])
+                en_cours = debut <= today < fin
+                style_montage = (
+                    "color:#e74c3c;font-weight:bold;"
+                    if en_cours else "color:#555;"
+                )
+                montage_cell = (
+                    f"<td style='padding:6px 12px;{style_montage}'>"
+                    f"{fmt_date(st['start'])} → {fmt_date(st['end'])}"
+                    f"</td>"
+                )
+                break
+
         lignes += (
             f"<tr style='border-bottom:1px solid #eee;'>"
             f"<td style='background-color:{couleur};width:30px;'></td>"
             f"<td style='padding:6px 12px;'><b>{nom}</b></td>"
             f"<td style='padding:6px 12px;color:#666;'>{client}</td>"
+            f"{montage_cell}"
             f"</tr>"
         )
     return f"""
@@ -38,6 +60,7 @@ def html_tableau_projets(projets):
                 <th style="padding:6px 12px;width:30px;"></th>
                 <th style="padding:6px 12px;">Projet</th>
                 <th style="padding:6px 12px;">Client</th>
+                <th style="padding:6px 12px;">Montage décor</th>
             </tr>
         </thead>
         <tbody>{lignes}</tbody>

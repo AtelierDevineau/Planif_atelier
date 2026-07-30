@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import date
-from donnees import get_couleur_poste, POSTES
+from donnees import get_couleur_poste, POSTES, fmt_date
 
 # -------------------------------------------------------
 # UTILITAIRES
@@ -99,7 +99,7 @@ def html_recap_sous_taches(sous_taches, data_projet):
         lignes += (
             f"<tr style='border-bottom:1px solid #eee;'>"
             f"<td style='padding:6px 12px;'><b>{nom_st}</b></td>"
-            f"<td style='padding:6px 12px;color:#666;'>{st_data['start']} → {st_data['end']}</td>"
+            f"<td style='padding:6px 12px;color:#666;'>{fmt_date(st_data['start'])} → {fmt_date(st_data['end'])}</td>"
             f"<td style='padding:6px 12px;text-align:center;'>{nb}</td>"
             f"</tr>"
         )
@@ -151,7 +151,7 @@ def html_detail_sous_tache(st_data, data_st, ressources_base):
     header = (
         f"<p style='font-weight:bold;margin-top:16px;margin-bottom:6px;'>{nom_st} "
         f"<span style='font-weight:normal;color:#888;font-size:0.9em;'>"
-        f"— {st_data['start']} → {st_data['end']}</span></p>"
+        f"— {fmt_date(st_data['start'])} → {fmt_date(st_data['end'])}</span></p>"
     )
     tableau = f"""
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">

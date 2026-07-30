@@ -144,6 +144,17 @@ def init_session_state():
         st.session_state.msg_succes = None
 
 
+#------FORMATER DATE EN JJ/MM/AAAA--------------------------------------------------
+def fmt_date(date_iso):
+    """Convertit une date ISO 'AAAA-MM-JJ' en 'JJ/MM/AAAA'."""
+    try:
+        from datetime import date as _date
+        d = _date.fromisoformat(date_iso)
+        return f"{d.day:02d}/{d.month:02d}/{d.year}"
+    except Exception:
+        return date_iso
+
+
 #------RECUPERER COULEUR PROJET--------------------------------------------------
 def get_couleur_projet(nom_projet):
     for p in st.session_state.Projets_gantt:

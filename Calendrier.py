@@ -585,6 +585,7 @@ def gantt_ressources(ressources_base, data_proj, date_debut_grille, date_fin_gri
     """
 
     colgroup = '<colgroup>'
+    colgroup += '<col style="width:80px;min-width:80px;max-width:80px;">'  # colonne label nom
     for col in colonnes:
         if col["type"] == "sep":
             colgroup += '<col style="width:3px;min-width:3px;max-width:3px;">'
@@ -592,7 +593,7 @@ def gantt_ressources(ressources_base, data_proj, date_debut_grille, date_fin_gri
             colgroup += '<col style="width:14px;min-width:14px;">'
     colgroup += '</colgroup>'
 
-    header = '<tr>'
+    header = '<tr><th style="background:#f5f5f5;border-bottom:2px solid #ccc;"></th>'
     for lundi in lundis:
         jours_sem = [j for j in jours if lundi <= j < lundi + timedelta(weeks=1)]
         if not jours_sem:
@@ -860,8 +861,23 @@ def calendrier_tab():
             st.info("Aucune ressource créée.")
 
     if selection == "Absences":
+        if st.session_state.get("msg_succes"):
+            st.success(st.session_state.msg_succes)
+            st.session_state.msg_succes = None
+
+        noms_ressources = [r["Nom"] for r in st.session_state.Ressources_base]
+
+        # Construire la liste de toutes les absences avec leur index
+        # Format : [(nom_ress, idx_absence, label_affichage)]
+        toutes_absences = []
+        for r in st.session_state.Ressources_base:
+            for idx, absence in enumerate(r.get("absences", [])):
+                label = f"{r['Nom']} — {absence['start']} → {absence['end']}"
+                toutes_absences.append((r["Nom"], idx, label, absence))
+
+        # ── Ajout d'une absence ──
+        st.markdown("#### Ajouter une absence")
         with st.form("form_absence", clear_on_submit=True):
-            noms_ressources = [r["Nom"] for r in st.session_state.Ressources_base]
             col_nom, col_debut, col_fin = st.columns([2, 1, 1])
             with col_nom:
                 nom_choisi = st.selectbox("Ressource", options=noms_ressources)
@@ -869,7 +885,7 @@ def calendrier_tab():
                 date_debut = st.date_input("Début", value=date.today())
             with col_fin:
                 date_fin = st.date_input("Fin", value=date.today() + timedelta(days=7))
-            submitted = st.form_submit_button("➕ Ajouter l'absence")
+            submitted = st.form_submit_button("➕ Ajouter")
 
         if submitted:
             if date_fin <= date_debut:
@@ -892,9 +908,81 @@ def calendrier_tab():
                 st.session_state.msg_succes = f"Absence de {nom_choisi} ajoutée."
                 st.rerun()
 
-        if st.session_state.get("msg_succes"):
-            st.success(st.session_state.msg_succes)
-            st.session_state.msg_succes = None
+        # ── Modifier ou supprimer une absence ──
+        if toutes_absences:
+            st.markdown("#### Modifier ou supprimer une absence")
+            options_labels = [a[2] for a in toutes_absences]
+            choix_label = st.selectbox(
+                "Sélectionner une absence",
+                options=options_labels,
+                key="absence_selectbox"
+            )
+            idx_choix = options_labels.index(choix_label)
+            nom_ress_sel, idx_abs_sel, _, absence_sel = toutes_absences[idx_choix]
+
+            with st.form("form_modif_absence"):
+                col_nom2, col_debut2, col_fin2 = st.columns([2, 1, 1])
+                with col_nom2:
+                    nouveau_nom = st.selectbox(
+                        "Ressource",
+                        options=noms_ressources,
+                        index=noms_ressources.index(nom_ress_sel)
+                    )
+                with col_debut2:
+                    nouveau_debut = st.date_input(
+                        "Début",
+                        value=date.fromisoformat(absence_sel["start"])
+                    )
+                with col_fin2:
+                    nouveau_fin = st.date_input(
+                        "Fin",
+                        value=date.fromisoformat(absence_sel["end"])
+                    )
+                col_save, col_del = st.columns([1, 1])
+                with col_save:
+                    sauvegarder = st.form_submit_button("✅ Modifier")
+                with col_del:
+                    supprimer = st.form_submit_button("🗑 Supprimer")
+
+            if sauvegarder:
+                if nouveau_fin <= nouveau_debut:
+                    st.error("La date de fin doit être après la date de début.")
+                else:
+                    # Supprimer l'ancienne absence
+                    for r in st.session_state.Ressources_base:
+                        if r["Nom"] == nom_ress_sel:
+                            r["absences"].pop(idx_abs_sel)
+                            break
+                    # Ajouter la nouvelle (potentiellement sur une autre ressource)
+                    for r in st.session_state.Ressources_base:
+                        if r["Nom"] == nouveau_nom:
+                            if "absences" not in r:
+                                r["absences"] = []
+                            r["absences"].append({
+                                "start": nouveau_debut.isoformat(),
+                                "end": nouveau_fin.isoformat()
+                            })
+                            break
+                    nouveau_sha = sauvegarder_ressources_github(
+                        st.session_state.Ressources_base,
+                        st.session_state.ressources_sha
+                    )
+                    st.session_state.ressources_sha = nouveau_sha
+                    st.session_state.msg_succes = "Absence modifiée."
+                    st.rerun()
+
+            if supprimer:
+                for r in st.session_state.Ressources_base:
+                    if r["Nom"] == nom_ress_sel:
+                        r["absences"].pop(idx_abs_sel)
+                        break
+                nouveau_sha = sauvegarder_ressources_github(
+                    st.session_state.Ressources_base,
+                    st.session_state.ressources_sha
+                )
+                st.session_state.ressources_sha = nouveau_sha
+                st.session_state.msg_succes = f"Absence de {nom_ress_sel} supprimée."
+                st.rerun()
 
         absences_cal = build_absences_cal()
         calendar(events=absences_cal, options=Options_cal)

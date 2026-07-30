@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import date
-from donnees import sauvegarder_assignations_github
+from donnees import sauvegarder_assignations_github, fmt_date
 from Logique import (
     recalculer_dispos,
     get_dispo_restante,
@@ -42,7 +42,7 @@ def ressource_en_conge(nom, start_st, end_st):
                 fin_st = date.fromisoformat(end_st)
                 # Chevauchement si les périodes se croisent
                 if debut_abs < fin_st and fin_abs > debut_st:
-                    conflits.append(f"{absence['start']} → {absence['end']}")
+                    conflits.append(f"{fmt_date(absence['start'])} → {fmt_date(absence['end'])}")
     return conflits
 
 
@@ -216,7 +216,7 @@ def assignation_tab():
     )
 
     # Afficher les dates de la sous-tâche
-    st.caption(f"📅 {sous_tache_data.get('start', '')} → {sous_tache_data.get('end', '')}")
+    st.caption(f"📅 {fmt_date(sous_tache_data.get('start', ''))} → {fmt_date(sous_tache_data.get('end', ''))}")
 
     st.markdown(f"<h2 style='text-align:center; font-weight:bold;'>{projet} — {nom_sous_tache}</h2>", unsafe_allow_html=True)
 
